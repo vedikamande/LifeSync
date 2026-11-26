@@ -13,6 +13,7 @@ const SECTION_TITLES = {
   habits: 'Habit Tracker',
   goals: 'My Goals',
   activities: 'Activities',
+  reports: 'Progress reports',
   settings: 'Settings',
 }
 

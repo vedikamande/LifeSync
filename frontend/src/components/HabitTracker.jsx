@@ -18,34 +18,42 @@ function HabitTracker({ habits, onToggleHabit }) {
         </span>
       </div>
 
-      <ul className="habit-list">
-        {habits.map((habit) => (
-          <li
-            key={habit.id}
-            className={`habit-item ${habit.completed ? 'completed' : ''}`}
-          >
-            <button
-              type="button"
-              className={`check-btn ${habit.completed ? 'checked' : ''}`}
-              onClick={() => onToggleHabit(habit.id)}
-              aria-label={`Toggle ${habit.name} habit`}
+      {habits.length === 0 ? (
+        <div className="empty-state">
+          <p>No habits configured.</p>
+        </div>
+      ) : (
+        <ul className="habit-list">
+          {habits.map((habit) => (
+            <li
+              key={habit.id}
+              className={`habit-item ${habit.completed ? 'completed' : ''}`}
             >
-              {habit.completed && <Check size={14} strokeWidth={2} />}
-            </button>
+              <button
+                type="button"
+                className={`check-btn ${habit.completed ? 'checked' : ''}`}
+                onClick={() => onToggleHabit(habit.id)}
+                aria-label={`Toggle ${habit.name} habit`}
+              >
+                {habit.completed && <Check size={14} strokeWidth={2} />}
+              </button>
 
-            <div className="habit-info">
-              <span className="habit-name">{habit.name}</span>
-              <span className="habit-streak">{habit.streak}</span>
-            </div>
+              <div className="habit-info">
+                <span className="habit-name">{habit.name}</span>
+                <span className="habit-streak">
+                  {habit.streak || `${habit.streakDays || 0} days`} streak
+                </span>
+              </div>
 
-            <span
-              className={`habit-status ${habit.completed ? 'done' : 'pending'}`}
-            >
-              {habit.completed ? 'Done' : 'Pending'}
-            </span>
-          </li>
-        ))}
-      </ul>
+              <span
+                className={`habit-status ${habit.completed ? 'done' : 'pending'}`}
+              >
+                {habit.completed ? 'Done' : 'Pending'}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

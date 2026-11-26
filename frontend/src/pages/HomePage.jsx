@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import GoalsSection from '../components/GoalsSection.jsx'
 import HabitTracker from '../components/HabitTracker.jsx'
 import RecentActivities from '../components/RecentActivities.jsx'
+import ReportsSection from '../components/ReportsSection.jsx'
 import SettingsPanel from '../components/SettingsPanel.jsx'
 import StatsCards from '../components/StatsCards.jsx'
 import TodayTasks from '../components/TodayTasks.jsx'
@@ -12,41 +13,58 @@ import {
   INITIAL_TASKS,
 } from '../data/sampleData.js'
 import {
+  createActivityRecord,
+  loadActivitiesFromStorage,
+  saveActivitiesToStorage,
+} from '../utils/activityUtils.js'
+import {
   clampProgress,
   getGoalStatus,
   loadGoalsFromStorage,
   normalizeGoal,
   saveGoalsToStorage,
 } from '../utils/goalUtils.js'
+import {
+  loadHabitsFromStorage,
+  saveHabitsToStorage,
+  toggleHabitCompletion,
+} from '../utils/habitUtils.js'
 import { loadTasksFromStorage, saveTasksToStorage } from '../utils/taskUtils.js'
 
-const MAX_RECENT_ACTIVITIES = 6
+const OVERVIEW_ACTIVITY_LIMIT = 6
 
 /**
- * Main dashboard workspace coordinating tasks, habits, goals (persisted in localStorage), and live activities.
+ * Main dashboard workspace coordinating persisted tasks, habits, goals, activities, and progress reports.
  */
 function HomePage({ activeSection }) {
   const [tasks, setTasks] = useState(() => loadTasksFromStorage(INITIAL_TASKS))
-  const [habits, setHabits] = useState(INITIAL_HABITS)
+  const [habits, setHabits] = useState(() =>
+    loadHabitsFromStorage(INITIAL_HABITS),
+  )
   const [goals, setGoals] = useState(() => loadGoalsFromStorage(INITIAL_GOALS))
-  const [activities, setActivities] = useState(INITIAL_ACTIVITIES)
+  const [activities, setActivities] = useState(() =>
+    loadActivitiesFromStorage(INITIAL_ACTIVITIES),
+  )
 
   useEffect(() => {
     saveTasksToStorage(tasks)
   }, [tasks])
 
   useEffect(() => {
+    saveHabitsToStorage(habits)
+  }, [habits])
+
+  useEffect(() => {
     saveGoalsToStorage(goals)
   }, [goals])
 
-  function pushActivity(type, title) {
-    const newEntry = {
-      id: Date.now() + Math.random(),
-      type,
-      title,
-      time: 'Just now',
-    }
-    setActivities((prev) => [newEntry, ...prev].slice(0, MAX_RECENT_ACTIVITIES))
+  useEffect(() => {
+    saveActivitiesToStorage(activities)
+  }, [activities])
+
+  function pushActivity(type, title, description) {
+    const newEntry = createActivityRecord({ type, title, description })
+    setActivities((prev) => [newEntry, ...prev])
   }
 
   function handleAddTask(taskData) {
@@ -56,6 +74,11 @@ function HomePage({ activeSection }) {
       completed: false,
     }
     setTasks((prev) => [newTask, ...prev])
+    pushActivity(
+      'task',
+      'Task created',
+      `Added "${newTask.title}" (${newTask.priority} priority)`,
+    )
   }
 
   function handleEditTask(taskId, updatedFields) {
@@ -78,27 +101,34 @@ function HomePage({ activeSection }) {
     )
 
     if (nextCompleted) {
-      pushActivity('task', `Completed "${target.title}"`)
+      pushActivity('task', 'Task completed', `Completed "${target.title}"`)
     }
   }
 
   function handleDeleteTask(taskId) {
+    const target = tasks.find((task) => task.id === taskId)
     setTasks((prev) => prev.filter((task) => task.id !== taskId))
+
+    if (target) {
+      pushActivity('task', 'Task deleted', `Removed "${target.title}"`)
+    }
   }
 
   function handleToggleHabit(habitId) {
     const target = habits.find((habit) => habit.id === habitId)
     if (!target) return
 
-    const nextCompleted = !target.completed
+    const updatedHabit = toggleHabitCompletion(target)
     setHabits((prev) =>
-      prev.map((habit) =>
-        habit.id === habitId ? { ...habit, completed: nextCompleted } : habit,
-      ),
+      prev.map((habit) => (habit.id === habitId ? updatedHabit : habit)),
     )
 
-    if (nextCompleted) {
-      pushActivity('habit', `Checked off "${target.name}" habit`)
+    if (updatedHabit.completed) {
+      pushActivity(
+        'habit',
+        'Habit completed',
+        `Checked off "${updatedHabit.name}" (${updatedHabit.streak} streak)`,
+      )
     }
   }
 
@@ -108,7 +138,11 @@ function HomePage({ activeSection }) {
       ...goalData,
     })
     setGoals((prev) => [newGoal, ...prev])
-    pushActivity('goal', `Created new goal "${newGoal.title}"`)
+    pushActivity(
+      'goal',
+      'Goal created',
+      `Created "${newGoal.title}" (${newGoal.category})`,
+    )
   }
 
   function handleEditGoal(goalId, updatedFields) {
@@ -119,12 +153,16 @@ function HomePage({ activeSection }) {
     setGoals((prev) =>
       prev.map((goal) => (goal.id === goalId ? updatedGoal : goal)),
     )
-    pushActivity(
-      'goal',
-      updatedGoal.status === 'Completed'
-        ? `Completed goal "${updatedGoal.title}"`
-        : `Updated goal "${updatedGoal.title}" (${updatedGoal.progress}%)`,
-    )
+
+    if (updatedGoal.progress !== target.progress) {
+      pushActivity(
+        'goal',
+        updatedGoal.status === 'Completed'
+          ? 'Goal completed'
+          : 'Goal progress updated',
+        `"${updatedGoal.title}" moved from ${target.progress}% to ${updatedGoal.progress}%`,
+      )
+    }
   }
 
   function handleDeleteGoal(goalId) {
@@ -149,9 +187,8 @@ function HomePage({ activeSection }) {
 
     pushActivity(
       'goal',
-      nextStatus === 'Completed'
-        ? `Completed goal "${target.title}" (100%)`
-        : `Updated "${target.title}" progress to ${nextProgress}%`,
+      nextStatus === 'Completed' ? 'Goal completed' : 'Goal progress updated',
+      `"${target.title}" moved from ${target.progress}% to ${nextProgress}%`,
     )
   }
 
@@ -164,7 +201,7 @@ function HomePage({ activeSection }) {
 
   return (
     <main className="dashboard-content">
-      {activeSection !== 'settings' && (
+      {activeSection !== 'settings' && activeSection !== 'reports' && (
         <StatsCards
           totalTasks={totalTasks}
           completedTasks={completedTasks}
@@ -194,7 +231,10 @@ function HomePage({ activeSection }) {
 
           <div className="grid-column">
             <HabitTracker habits={habits} onToggleHabit={handleToggleHabit} />
-            <RecentActivities activities={activities} />
+            <RecentActivities
+              activities={activities}
+              maxItems={OVERVIEW_ACTIVITY_LIMIT}
+            />
           </div>
         </div>
       )}
@@ -225,6 +265,15 @@ function HomePage({ activeSection }) {
 
       {activeSection === 'activities' && (
         <RecentActivities activities={activities} />
+      )}
+
+      {activeSection === 'reports' && (
+        <ReportsSection
+          tasks={tasks}
+          habits={habits}
+          goals={goals}
+          activities={activities}
+        />
       )}
 
       {activeSection === 'settings' && <SettingsPanel />}

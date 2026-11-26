@@ -1,0 +1,186 @@
+/* Activities Filter & Extended Rows */
+.activity-filter-bar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-control);
+  background-color: var(--bg-raised);
+  border: 1px solid var(--border-hairline);
+}
+
+.activity-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.activity-description {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+  word-break: break-word;
+}
+
+/* Progress Reports */
+.reports-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reports-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.compact-header {
+  margin-bottom: 12px;
+}
+
+.metric-list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-hairline);
+}
+
+.metric-row dt {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.metric-row dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* Recharts Layout */
+.reports-charts-layout {
+  display: grid;
+  grid-template-columns: 1.45fr 1fr;
+  gap: 20px;
+}
+
+.chart-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-wrap {
+  width: 100%;
+  min-height: 250px;
+}
+
+.pie-wrap {
+  min-height: 210px;
+}
+
+.pie-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot-positive {
+  background-color: var(--positive);
+}
+
+.dot-muted {
+  background-color: #d8d1c5;
+}
+
+/* Habit Streaks Summary */
+.streak-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.streak-card {
+  padding: 12px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-row);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.streak-name {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.streak-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.streak-days {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-ink);
+}
+
+@media (max-width: 1100px) {
+  .reports-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reports-charts-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .streak-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .streak-grid {
+    grid-template-columns: 1fr;
+  }
+}

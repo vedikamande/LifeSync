@@ -1,3 +1,23 @@
+import { getTodayDateString } from '../utils/goalUtils.js'
+import { getPastDateKeys } from '../utils/habitUtils.js'
+
+function buildHabitLog(activeOffsets) {
+  const keys = getPastDateKeys(7, getTodayDateString())
+  const log = {}
+  keys.forEach((key, index) => {
+    const daysAgo = keys.length - 1 - index
+    log[key] = activeOffsets.includes(daysAgo)
+  })
+  return log
+}
+
+function buildIsoOffset(daysAgo, hours = 9, minutes = 30) {
+  const date = new Date()
+  date.setDate(date.getDate() - daysAgo)
+  date.setHours(hours, minutes, 0, 0)
+  return date.toISOString()
+}
+
 export const INITIAL_TASKS = [
   {
     id: 1,
@@ -38,10 +58,38 @@ export const INITIAL_TASKS = [
 ]
 
 export const INITIAL_HABITS = [
-  { id: 1, name: 'Reading', streak: '5 day streak', completed: true },
-  { id: 2, name: 'Exercise', streak: '3 day streak', completed: false },
-  { id: 3, name: 'Coding Practice', streak: '7 day streak', completed: true },
-  { id: 4, name: 'Meditation', streak: '4 day streak', completed: false },
+  {
+    id: 1,
+    name: 'Reading',
+    streakDays: 5,
+    streak: '5 days',
+    completed: true,
+    weeklyLog: buildHabitLog([0, 1, 2, 3, 4]),
+  },
+  {
+    id: 2,
+    name: 'Exercise',
+    streakDays: 3,
+    streak: '3 days',
+    completed: false,
+    weeklyLog: buildHabitLog([1, 2, 3, 5]),
+  },
+  {
+    id: 3,
+    name: 'Coding Practice',
+    streakDays: 7,
+    streak: '7 days',
+    completed: true,
+    weeklyLog: buildHabitLog([0, 1, 2, 3, 4, 5, 6]),
+  },
+  {
+    id: 4,
+    name: 'Meditation',
+    streakDays: 4,
+    streak: '4 days',
+    completed: false,
+    weeklyLog: buildHabitLog([1, 2, 4, 5]),
+  },
 ]
 
 export const INITIAL_GOALS = [
@@ -93,21 +141,31 @@ export const INITIAL_GOALS = [
 
 export const INITIAL_ACTIVITIES = [
   {
-    id: 1,
+    id: 'init-1',
     type: 'task',
-    title: 'Completed "Review React component props and useState flow"',
-    time: 'Earlier today',
+    title: 'Task completed',
+    description: 'Completed "Review React component props and useState flow"',
+    timestamp: buildIsoOffset(0, 9, 15),
   },
   {
-    id: 2,
-    type: 'goal',
-    title: 'Updated "Improve Python Skills" progress to 80%',
-    time: 'Yesterday',
+    id: 'init-2',
+    type: 'habit',
+    title: 'Habit completed',
+    description: 'Checked off "Coding Practice" for today',
+    timestamp: buildIsoOffset(0, 8, 30),
   },
   {
-    id: 3,
+    id: 'init-3',
     type: 'goal',
-    title: 'Updated "Learn React" progress to 65%',
-    time: '2 days ago',
+    title: 'Goal progress updated',
+    description: '"Improve Python Skills" reached 80%',
+    timestamp: buildIsoOffset(1, 18, 45),
+  },
+  {
+    id: 'init-4',
+    type: 'goal',
+    title: 'Goal progress updated',
+    description: '"Learn React" reached 65%',
+    timestamp: buildIsoOffset(2, 16, 10),
   },
 ]
