@@ -77,25 +77,28 @@ function TodayTasks({
     <section className="dashboard-card" aria-label="Task Manager">
       <div className="card-header">
         <div>
-          <h2 className="card-title">Today&apos;s Tasks</h2>
-          <p className="card-subtitle">
-            Add, edit, search, and filter tasks — saved automatically.
-          </p>
+          <h2 className="card-title">Today&apos;s tasks</h2>
+          <p className="card-subtitle">Saved automatically to this browser</p>
         </div>
 
         <button type="button" className="btn-primary" onClick={openAddModal}>
-          <Plus size={16} />
-          <span>Add Task</span>
+          <Plus size={16} strokeWidth={1.5} />
+          <span>Add task</span>
         </button>
       </div>
 
       <div className="task-toolbar">
         <div className="search-box">
-          <Search size={16} className="search-icon" aria-hidden="true" />
+          <Search
+            size={16}
+            strokeWidth={1.5}
+            className="search-icon"
+            aria-hidden="true"
+          />
           <input
             type="text"
             className="search-input"
-            placeholder="Search tasks by title..."
+            placeholder="Search tasks"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             aria-label="Search tasks by title"
@@ -124,7 +127,7 @@ function TodayTasks({
           >
             {PRIORITY_FILTERS.map((priority) => (
               <option key={priority} value={priority}>
-                {priority === 'All' ? 'All Priorities' : `${priority} Priority`}
+                {priority === 'All' ? 'All priorities' : `${priority} priority`}
               </option>
             ))}
           </select>
@@ -133,11 +136,11 @@ function TodayTasks({
 
       {tasks.length === 0 ? (
         <div className="empty-state">
-          <p>No tasks yet. Click &ldquo;Add Task&rdquo; to create your first task!</p>
+          <p>No tasks yet. Use Add task to create your first item.</p>
         </div>
       ) : filteredTasks.length === 0 ? (
         <div className="empty-state">
-          <p>No tasks match your current search or filters.</p>
+          <p>No tasks match the current search or filters.</p>
           {hasActiveFilters && (
             <button
               type="button"
@@ -173,9 +176,9 @@ function TodayTasks({
 
       {taskPendingDelete && (
         <ConfirmModal
-          title="Delete Task?"
-          message={`Are you sure you want to delete "${taskPendingDelete.title}"? This action cannot be undone.`}
-          confirmLabel="Delete Task"
+          title="Delete task"
+          message={`Delete "${taskPendingDelete.title}"? This cannot be undone.`}
+          confirmLabel="Delete task"
           onConfirm={handleConfirmDelete}
           onCancel={() => setTaskPendingDelete(null)}
         />

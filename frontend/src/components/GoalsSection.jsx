@@ -97,15 +97,13 @@ function GoalsSection({
     <section className="dashboard-card" aria-label="Goal Tracker">
       <div className="card-header">
         <div>
-          <h2 className="card-title">Goal Tracker</h2>
-          <p className="card-subtitle">
-            Set personal milestones, track deadlines, and monitor completion.
-          </p>
+          <h2 className="card-title">Goal tracker</h2>
+          <p className="card-subtitle">Milestones, deadlines, and completion</p>
         </div>
 
         <button type="button" className="btn-primary" onClick={openAddModal}>
-          <Plus size={16} />
-          <span>Add Goal</span>
+          <Plus size={16} strokeWidth={1.5} />
+          <span>Add goal</span>
         </button>
       </div>
 
@@ -115,13 +113,13 @@ function GoalsSection({
         <div className="deadline-summary-bar">
           {overdueCount > 0 && (
             <span className="deadline-pill deadline-overdue">
-              <AlertCircle size={13} />
+              <AlertCircle size={14} strokeWidth={1.5} />
               {overdueCount} overdue {overdueCount === 1 ? 'goal' : 'goals'}
             </span>
           )}
           {upcomingCount > 0 && (
             <span className="deadline-pill deadline-upcoming">
-              <Calendar size={13} />
+              <Calendar size={14} strokeWidth={1.5} />
               {upcomingCount} due within 7 days
             </span>
           )}
@@ -130,11 +128,16 @@ function GoalsSection({
 
       <div className="task-toolbar">
         <div className="search-box">
-          <Search size={16} className="search-icon" aria-hidden="true" />
+          <Search
+            size={16}
+            strokeWidth={1.5}
+            className="search-icon"
+            aria-hidden="true"
+          />
           <input
             type="text"
             className="search-input"
-            placeholder="Search goals by title..."
+            placeholder="Search goals"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}
             aria-label="Search goals by title"
@@ -161,7 +164,7 @@ function GoalsSection({
             onChange={(event) => setCategoryFilter(event.target.value)}
             aria-label="Filter by goal category"
           >
-            <option value="All">All Categories</option>
+            <option value="All">All categories</option>
             {GOAL_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category}
@@ -173,11 +176,11 @@ function GoalsSection({
 
       {goals.length === 0 ? (
         <div className="empty-state">
-          <p>No goals yet. Click &ldquo;Add Goal&rdquo; to set your first milestone!</p>
+          <p>No goals yet. Use Add goal to create your first milestone.</p>
         </div>
       ) : filteredGoals.length === 0 ? (
         <div className="empty-state">
-          <p>No goals match your current search or filters.</p>
+          <p>No goals match the current search or filters.</p>
           {hasActiveFilters && (
             <button
               type="button"
@@ -222,9 +225,9 @@ function GoalsSection({
 
       {goalPendingDelete && (
         <ConfirmModal
-          title="Delete Goal?"
-          message={`Are you sure you want to delete "${goalPendingDelete.title}"? This action cannot be undone.`}
-          confirmLabel="Delete Goal"
+          title="Delete goal"
+          message={`Delete "${goalPendingDelete.title}"? This cannot be undone.`}
+          confirmLabel="Delete goal"
           onConfirm={handleConfirmDelete}
           onCancel={() => setGoalPendingDelete(null)}
         />

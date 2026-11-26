@@ -1,4 +1,4 @@
-import { Check, Flame } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 /**
  * Daily habit check-in list for Reading, Exercise, Coding Practice, and Meditation.
@@ -10,12 +10,10 @@ function HabitTracker({ habits, onToggleHabit }) {
     <section className="dashboard-card" aria-label="Habit Tracker">
       <div className="card-header">
         <div>
-          <h2 className="card-title">Habit Tracker</h2>
-          <p className="card-subtitle">
-            Build consistency with your daily routines.
-          </p>
+          <h2 className="card-title">Habit tracker</h2>
+          <p className="card-subtitle">Daily routine check-ins</p>
         </div>
-        <span className="count-pill lavender-pill">
+        <span className="count-meta">
           {completedCount}/{habits.length} done
         </span>
       </div>
@@ -28,19 +26,16 @@ function HabitTracker({ habits, onToggleHabit }) {
           >
             <button
               type="button"
-              className={`check-btn lavender-check ${habit.completed ? 'checked' : ''}`}
+              className={`check-btn ${habit.completed ? 'checked' : ''}`}
               onClick={() => onToggleHabit(habit.id)}
               aria-label={`Toggle ${habit.name} habit`}
             >
-              {habit.completed && <Check size={14} />}
+              {habit.completed && <Check size={14} strokeWidth={2} />}
             </button>
 
             <div className="habit-info">
               <span className="habit-name">{habit.name}</span>
-              <span className="habit-streak">
-                <Flame size={13} />
-                {habit.streak}
-              </span>
+              <span className="habit-streak">{habit.streak}</span>
             </div>
 
             <span

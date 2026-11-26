@@ -31,7 +31,7 @@ function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCa
         <div className="modal-header">
           <div className="confirm-title-wrap">
             <div className="confirm-icon" aria-hidden="true">
-              <AlertTriangle size={18} />
+              <AlertTriangle size={16} strokeWidth={1.5} />
             </div>
             <h3 id="confirm-modal-title" className="modal-title">
               {title}
@@ -44,7 +44,7 @@ function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCa
             onClick={onCancel}
             aria-label="Close confirmation dialog"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 

@@ -2,59 +2,32 @@
 .goal-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.7rem;
-  margin-bottom: 1rem;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 .goal-stat-box {
+  padding: 12px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-row);
   display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 0.72rem 0.85rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-subtle);
-}
-
-.goal-stat-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  flex-shrink: 0;
-  display: grid;
-  place-items: center;
-}
-
-.tone-blue {
-  background-color: var(--blue-soft);
-  color: var(--blue-600);
-}
-
-.tone-emerald {
-  background-color: var(--emerald-soft);
-  color: var(--emerald-700);
-}
-
-.tone-lavender {
-  background-color: var(--lavender-soft);
-  color: var(--lavender-600);
-}
-
-.tone-slate {
-  background-color: #f1f5f9;
-  color: #475569;
-}
-
-.goal-stat-value {
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.15;
-  color: var(--text-main);
+  flex-direction: column;
+  gap: 4px;
 }
 
 .goal-stat-label {
-  font-size: 0.72rem;
+  font-size: 12px;
+  line-height: 16px;
   color: var(--text-muted);
+}
+
+.goal-stat-value {
+  font-size: 20px;
+  line-height: 24px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
 }
 
 /* Deadline Summary Bar */
@@ -62,39 +35,39 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.95rem;
+  gap: 8px;
+  margin-bottom: 16px;
 }
 
 /* Goal Cards */
 .goal-card {
-  padding: 1rem 1.05rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  background-color: var(--bg-subtle);
+  padding: 16px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-row);
   transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease;
+    background-color 140ms var(--ease-out),
+    border-color 140ms var(--ease-out);
 }
 
 .goal-card:hover {
-  background-color: var(--bg-surface);
+  background-color: #ffffff;
+  border-color: var(--border-strong);
 }
 
 .goal-card.goal-overdue {
-  border-color: #fecaca;
-  background-color: #fffafa;
+  border-color: rgba(185, 28, 28, 0.25);
 }
 
 .goal-card.goal-completed {
-  border-color: #bbf7d0;
+  border-color: rgba(21, 128, 61, 0.22);
 }
 
 .goal-card-top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .goal-heading-block {
@@ -106,15 +79,17 @@
   background: transparent;
   padding: 0;
   margin: 0;
-  font-size: 0.98rem;
-  font-weight: 700;
-  color: var(--text-main);
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
   text-align: left;
   cursor: pointer;
+  transition: color 140ms var(--ease-out);
 }
 
 .goal-title-btn:hover {
-  color: var(--blue-600);
+  color: var(--accent-ink);
   text-decoration: underline;
 }
 
@@ -122,8 +97,8 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.35rem;
+  gap: 6px;
+  margin-top: 8px;
 }
 
 .goal-category-badge,
@@ -131,183 +106,192 @@
 .deadline-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.28rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 0.16rem 0.54rem;
-  border-radius: 999px;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-tag);
 }
 
-/* Category Colors */
-.category-study {
-  background-color: var(--blue-soft);
-  color: var(--blue-600);
+/* Quiet Category Tags with Dot Indicator */
+.goal-category-badge {
+  background-color: var(--bg-raised);
+  color: var(--text-secondary);
 }
 
-.category-career {
-  background-color: var(--lavender-soft);
-  color: var(--lavender-600);
+.category-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
-.category-health {
-  background-color: var(--emerald-soft);
-  color: var(--emerald-700);
+.dot-study {
+  background-color: var(--accent);
 }
 
-.category-personal {
-  background-color: var(--amber-soft);
-  color: var(--amber-700);
+.dot-career {
+  background-color: #4f46e5;
 }
 
-/* Goal Status Colors */
+.dot-health {
+  background-color: var(--positive);
+}
+
+.dot-personal {
+  background-color: var(--warning);
+}
+
+/* Goal Status Tags */
 .status-not-started {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: var(--bg-raised);
+  color: var(--text-muted);
 }
 
 .status-in-progress {
-  background-color: var(--blue-soft);
-  color: var(--blue-600);
+  background-color: var(--accent-soft);
+  color: var(--accent-ink);
 }
 
 .status-completed {
-  background-color: var(--emerald-soft);
-  color: var(--emerald-700);
+  background-color: var(--positive-soft);
+  color: var(--positive);
 }
 
-/* Deadline Pills */
+/* Deadline Tags */
 .deadline-overdue {
   background-color: var(--danger-soft);
-  color: var(--danger-600);
+  color: var(--danger);
 }
 
 .deadline-upcoming {
-  background-color: var(--amber-soft);
-  color: var(--amber-700);
+  background-color: var(--warning-soft);
+  color: var(--warning);
 }
 
 .goal-actions {
   display: flex;
   align-items: center;
-  gap: 0.2rem;
+  gap: 4px;
   flex-shrink: 0;
 }
 
 .goal-description {
-  margin: 0.6rem 0 0;
-  font-size: 0.84rem;
-  color: var(--text-muted);
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
 }
 
 .goal-progress-section {
-  margin-top: 0.8rem;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 8px;
 }
 
 .goal-progress-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .goal-deadline-text {
   display: inline-flex;
   align-items: center;
-  gap: 0.32rem;
-  font-size: 0.78rem;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
   color: var(--text-muted);
 }
 
 .progress-fill.progress-complete {
-  background: linear-gradient(90deg, #10b981, #059669);
+  background-color: var(--positive);
 }
 
 .progress-input-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .progress-range {
   width: 100%;
-  accent-color: var(--blue-600);
+  accent-color: var(--accent);
   cursor: pointer;
 }
 
 .compact-range {
-  margin-top: 0.15rem;
+  margin-top: 2px;
   height: 16px;
 }
 
 /* Goal Details Modal */
-.goal-details-heading {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
 .goal-details-badges {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.35rem;
+  gap: 6px;
+  margin-top: 6px;
 }
 
 .goal-details-body {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .details-block {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 4px;
 }
 
 .details-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  font-size: 0.78rem;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .details-text {
   margin: 0;
-  font-size: 0.9rem;
-  color: var(--text-main);
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary);
 }
 
 .details-dates-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 12px;
 }
 
 .details-date-card {
-  padding: 0.75rem 0.9rem;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  background-color: var(--bg-subtle);
+  padding: 12px;
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-row);
 }
 
 .details-value {
-  margin-top: 0.25rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--text-main);
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
 }
 
 .details-progress-top {
@@ -319,11 +303,12 @@
 .deadline-banner {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.85rem;
-  font-weight: 600;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-control);
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
 }
 
 @media (max-width: 1200px) {

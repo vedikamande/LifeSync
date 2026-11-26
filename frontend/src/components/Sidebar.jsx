@@ -4,7 +4,6 @@ import {
   Flame,
   LayoutDashboard,
   Settings,
-  Sparkles,
   Target,
   X,
 } from 'lucide-react'
@@ -19,7 +18,7 @@ const NAV_ITEMS = [
 ]
 
 /**
- * Modern SaaS navigation sidebar with responsive drawer support.
+ * Quiet left navigation sidebar with flat brand mark and responsive drawer support.
  */
 function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
   function handleNavClick(sectionId) {
@@ -43,13 +42,19 @@ function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
       >
         <div className="sidebar-top">
           <div className="sidebar-brand">
-            <div className="brand-logo" aria-hidden="true">
-              <Sparkles size={20} />
-            </div>
-            <div>
-              <div className="brand-name">LifeSync</div>
-              <div className="brand-tagline">Personal Suite</div>
-            </div>
+            <svg
+              className="brand-mark"
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <rect x="2" y="3" width="16" height="2.2" rx="1.1" fill="currentColor" />
+              <rect x="2" y="8.9" width="11" height="2.2" rx="1.1" fill="currentColor" />
+              <rect x="2" y="14.8" width="14" height="2.2" rx="1.1" fill="#1d4ed8" />
+            </svg>
+            <span className="brand-name">LifeSync</span>
           </div>
 
           <button
@@ -58,7 +63,7 @@ function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
             onClick={onClose}
             aria-label="Close navigation menu"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 
@@ -74,7 +79,9 @@ function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
                 className={`sidebar-link ${isActive ? 'active' : ''}`}
                 onClick={() => handleNavClick(item.id)}
               >
-                <Icon size={18} />
+                <span className="nav-icon-box" aria-hidden="true">
+                  <Icon size={16} strokeWidth={1.5} />
+                </span>
                 <span>{item.label}</span>
               </button>
             )
@@ -82,10 +89,7 @@ function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
         </nav>
 
         <div className="sidebar-footer">
-          <div className="workspace-pill">
-            <span className="workspace-dot" aria-hidden="true" />
-            <span>Frontend Mode (Local Data)</span>
-          </div>
+          <span className="workspace-caption">Local workspace</span>
         </div>
       </aside>
     </>

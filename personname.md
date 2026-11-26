@@ -3,104 +3,94 @@
 ## Overview
 **LifeSync** is a full-stack personal productivity dashboard designed to help users manage daily tasks, personal goals, habits, and activities.
 
-This document reflects the **Frontend Dashboard + Task Manager + Phase 5 Goal Tracker** built with **React.js (JavaScript)**, **Vite**, and **`lucide-react`**, using browser `localStorage` for task and goal persistence. The **Python Flask** backend and **SQLite** database will be added and documented in a future phase.
+This document reflects the **Unslopped Frontend Dashboard + Task Manager + Phase 5 Goal Tracker** built with **React.js (JavaScript)**, **Vite**, and **`lucide-react`**, using browser `localStorage` for task and goal persistence. The **Python Flask** backend and **SQLite** database will be added and documented in a future phase.
 
 ---
 
-## Recent Changes (Phase 5: Goal Tracker)
+## Recent Changes (Unslop UI/UX Polish Pass)
 
-### 1. Project File Structure
+### 1. Design Direction & Visual System
+- **Direction**: *Warm Paper & Cobalt Ink* — calm, structured, quietly focused planner aesthetic.
+- **Neutral Ramp (`src/styles/global.css`)**:
+  - Sidebar `#f2eee6`, Page `#f7f4ee`, Cards/Modals `#fdfbf7`, Raised Controls `#efe9df`, Hairline borders `rgba(31, 27, 22, 0.09)`.
+  - Three text roles: Primary `#1f1b16`, Secondary `#5e554a`, Muted `#7b7266`.
+- **Single Accent & Semantics**:
+  - One primary accent (`#1d4ed8` / `#1e40af` ink) used for primary actions, active checkmarks, and goal progress bars.
+  - Muted semantic indicators for positive (`#15803d`), warning/upcoming (`#a16207`), and danger/overdue (`#b91c1c`).
+  - Removed all purple-to-blue gradients, colored glow shadows, and card hover jumps.
+- **Typography & Figures (`index.html`, `src/styles/global.css`)**:
+  - Interface font `DM Sans` (`400`, `500`, `600`) paired with `JetBrains Mono` (`400`, `500`) and `tabular-nums` for stat figures, dates, percentages, and counts.
+- **Spacing, Nested Radii & Icons**:
+  - Strict `4px` spacing scale (`4`, `8`, `12`, `16`, `20`, `24`, `32`).
+  - Nested radii: `6px` tags/dots, `8px` controls/rows, `14px` cards/modals.
+  - Replaced gradient Sparkles logo with a flat geometric SVG mark in `Sidebar.jsx`; unified Lucide icons to `16px` with `1.5` stroke in text-role colors.
+- **Copy & Layout**:
+  - `DashboardHeader.jsx` displays the active section title (`Overview`, `My Tasks`, etc.) with a calm `Good morning · Daily planner` subtitle, tabular date, and neutral profile chip.
+  - `StatsCards.jsx` displays crisp KPI numbers without decorative colored icon boxes.
+
+### 2. Project File Structure
 ```text
 LifeSync/
 ├── frontend/
-│   ├── index.html                        # HTML shell with LifeSync page title
+│   ├── index.html                        # HTML shell loading DM Sans & JetBrains Mono
 │   ├── package.json                      # React, Vite, Lucide icons, and npm scripts
 │   ├── vite.config.js                    # Vite + React plugin configuration
 │   └── src/
 │       ├── data/
-│       │   └── sampleData.js             # Initial tasks, habits, goals (category/dates/status), activities
+│       │   └── sampleData.js             # Initial tasks, habits, goals, activities
 │       ├── utils/
-│       │   ├── taskUtils.js              # Task localStorage, search, status/priority filter, date format
-│       │   └── goalUtils.js              # Goal localStorage, status derivation, deadlines, summary, filters
+│       │   ├── taskUtils.js              # Task localStorage, search, filters, date format
+│       │   └── goalUtils.js              # Goal localStorage, status derivation, deadlines, filters
 │       ├── components/
-│       │   ├── Sidebar.jsx               # Left navigation sidebar + mobile drawer
-│       │   ├── DashboardHeader.jsx       # Good Morning greeting, current date, profile icon
-│       │   ├── StatsCards.jsx            # 4 dynamic summary KPI cards
+│       │   ├── Sidebar.jsx               # Quiet left sidebar with flat geometric brand mark
+│       │   ├── DashboardHeader.jsx       # Contextual page title, Good morning line, date, profile
+│       │   ├── StatsCards.jsx            # 4 tabular KPI stat cards
 │       │   ├── TodayTasks.jsx            # Task Manager toolbar, list, Add/Edit/Delete modal triggers
-│       │   ├── TaskItem.jsx              # Individual task card
+│       │   ├── TaskItem.jsx              # Task card with checkbox, metadata tags, edit/delete actions
 │       │   ├── TaskModal.jsx             # Modal form for adding/editing tasks
 │       │   ├── ConfirmModal.jsx          # Reusable delete confirmation modal (tasks & goals)
 │       │   ├── GoalsSection.jsx          # Goal Tracker dashboard, deadline alerts, filters, CRUD modals
-│       │   ├── GoalStats.jsx             # Goal Dashboard (Total, Completed, In Progress, Not Started)
-│       │   ├── GoalCard.jsx              # Goal card with badges, progress bar, slider, action buttons
+│       │   ├── GoalStats.jsx             # Goal Dashboard (Total, Completed, In progress, Not started)
+│       │   ├── GoalCard.jsx              # Goal card with category dot, status/deadline tags, slider
 │       │   ├── GoalModal.jsx             # Modal form for adding/editing goals
 │       │   ├── GoalDetailsModal.jsx      # Detailed view of goal description, dates, progress, status
-│       │   ├── HabitTracker.jsx          # Interactive daily habit checkboxes
-│       │   ├── RecentActivities.jsx      # Live timeline of tasks, goals, and habits
+│       │   ├── HabitTracker.jsx          # Interactive daily habit check-ins
+│       │   ├── RecentActivities.jsx      # Live timeline of completed tasks, habits, and goals
 │       │   └── SettingsPanel.jsx         # Workspace info for the Settings navigation view
 │       ├── pages/
-│       │   └── HomePage.jsx              # Central useState + useEffect store for tasks, habits, goals, activities
+│       │   └── HomePage.jsx              # Central useState + useEffect store for all modules
 │       ├── services/
 │       │   └── api.js                    # Placeholder API_BASE_URL for future Flask API
 │       ├── styles/
-│       │   ├── global.css                # Core SaaS light-theme layout, tasks, modals, responsive styles
-│       │   └── goals.css                 # Dedicated Goal Tracker cards, badges, sliders, details modal styles
-│       ├── App.jsx                       # Root layout combining Sidebar, Header, and HomePage
+│       │   ├── global.css                # Warm Paper & Cobalt Ink tokens, shell, tasks, modals
+│       │   └── goals.css                 # Dedicated Goal Tracker cards, category dots, sliders, details
+│       ├── App.jsx                       # Root layout passing activeSection to Sidebar & DashboardHeader
 │       └── main.jsx                      # Mounts <App /> and loads global.css + goals.css
 └── personname.md                         # System documentation
 ```
 
 ---
 
-## Logic Descriptions
-
-1. **Goal Persistence (`src/utils/goalUtils.js` & `src/pages/HomePage.jsx`)**:
-   - `HomePage.jsx` initializes `goals` via `useState(() => loadGoalsFromStorage(INITIAL_GOALS))` from `localStorage` key `'lifesync_goals'`.
-   - `useEffect(() => { saveGoalsToStorage(goals) }, [goals])` saves all Add, Edit, Progress Update, and Delete actions automatically.
-2. **Automatic Status Derivation (`getGoalStatus` & `normalizeGoal`)**:
-   - `progress === 0` → `'Not Started'`
-   - `0 < progress < 100` → `'In Progress'`
-   - `progress === 100` → `'Completed'`
-   - Any progress update (via `-10%` / `+10%` buttons, range slider, or `GoalModal`) clamps progress to `0–100` and recalculates `status` automatically.
-3. **Deadline Management (`getDeadlineInfo`)**:
-   - Compares `targetDate` against today's date (`getTodayDateString()`):
-     - If `progress === 100` → `'completed'`
-     - If `daysLeft < 0` → `'overdue'` (`Overdue by X day(s)`) with red badge and card highlight
-     - If `0 <= daysLeft <= 7` → `'upcoming'` (`Due today` / `Due in X day(s)`) with amber badge
-4. **Goal Dashboard Metrics & Filtering (`GoalStats.jsx` & `filterGoals`)**:
-   - `getGoalSummary(goals)` computes `total`, `completed`, `inProgress`, and `notStarted` counts.
-   - `filterGoals(goals, { searchQuery, categoryFilter, statusFilter })` filters by title, category (`Study`, `Career`, `Health`, `Personal`), and derived status.
-5. **Reusable Confirmation (`ConfirmModal.jsx`)**:
-   - Reused by both `TodayTasks.jsx` and `GoalsSection.jsx` to confirm deletions before modifying state.
-
----
-
 ## Architecture & Flow Diagrams
 
-### Goal Tracker CRUD, Deadlines & Persistence Flow
+### Current React Component & State Flow
 ```mermaid
 flowchart TD
-    Startup["App Load"] --> LoadGoals["loadGoalsFromStorage()"]
-    LoadGoals -->|"Saved key exists"| Stored["localStorage ('lifesync_goals')"]
-    LoadGoals -->|"Empty"| Sample["INITIAL_GOALS"]
-    Stored --> State["HomePage goals useState"]
-    Sample --> State
-    State --> Save["useEffect -> saveGoalsToStorage()"]
-    State --> Stats["GoalStats + StatsCards (Active Goals)"]
-    State --> Deadlines["getDeadlineInfo() (Overdue / Upcoming)"]
-    State --> Filter["GoalsSection + filterGoals()"]
-    Filter --> Cards["GoalCard (Progress Slider & +/-10%)"]
-    Cards -->|"Add / Edit"| GoalModal["GoalModal"]
-    Cards -->|"View Details"| Details["GoalDetailsModal"]
-    Cards -->|"Delete"| Confirm["ConfirmModal (reused)"]
-    GoalModal --> State
-    Confirm --> State
+    App["App.jsx (activeSection, mobileMenuOpen)"] --> Sidebar["Sidebar.jsx (Flat Mark + Nav)"]
+    App --> Header["DashboardHeader.jsx (Active Title + Date)"]
+    App --> Home["HomePage.jsx (tasks, habits, goals, activities)"]
+    Home --> Stats["StatsCards.jsx (Tabular KPIs)"]
+    Home --> Tasks["TodayTasks.jsx + TaskModal + ConfirmModal"]
+    Home --> Habits["HabitTracker.jsx"]
+    Home --> Goals["GoalsSection.jsx + GoalStats + GoalCard + GoalModal + GoalDetailsModal"]
+    Home --> Activities["RecentActivities.jsx"]
+    Home --> Settings["SettingsPanel.jsx"]
 ```
 
 ### Planned Full-Stack Architecture
 ```mermaid
 flowchart LR
-    User["User Browser (http://localhost:5173)"] --> Frontend["React + Vite SaaS Dashboard (frontend/)"]
+    User["User Browser (http://localhost:5173)"] --> Frontend["React + Vite Dashboard (frontend/)"]
     Frontend -. "Planned REST API (http://localhost:5000/api)" .-> Backend["Python Flask Backend (Planned)"]
     Backend -. "SQL Queries (Planned)" .-> DB["SQLite Database (Planned)"]
 ```
@@ -108,18 +98,6 @@ flowchart LR
 ---
 
 ## Client-Side Schemas & Planned API Contract
-
-### Goal Object Schema (`localStorage` key: `lifesync_goals`)
-| Field | Type | Required | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `number` | Yes | Unique goal identifier (`Date.now()`) |
-| `title` | `string` | Yes | Goal title |
-| `description` | `string` | No | Detailed goal description |
-| `category` | `'Study' \| 'Career' \| 'Health' \| 'Personal'` | Yes | Goal category |
-| `startDate` | `string` | No | ISO start date (`YYYY-MM-DD`) |
-| `targetDate` | `string` | No | ISO target completion date (`YYYY-MM-DD`) |
-| `progress` | `number` | Yes | Integer percentage (`0` to `100`) |
-| `status` | `'Not Started' \| 'In Progress' \| 'Completed'` | Yes | Derived automatically from `progress` |
-
-- **Task Object Schema (`localStorage` key: `lifesync_tasks`)**: `id`, `title`, `description`, `priority`, `dueDate`, `category`, `completed`.
-- **Planned Backend API**: `http://localhost:5000/api` (placeholder in `frontend/src/services/api.js`); Python Flask + SQLite persistence will be implemented in a later phase.
+- **Task Schema (`localStorage` key: `lifesync_tasks`)**: `id`, `title`, `description`, `priority`, `dueDate`, `category`, `completed`.
+- **Goal Schema (`localStorage` key: `lifesync_goals`)**: `id`, `title`, `description`, `category`, `startDate`, `targetDate`, `progress`, `status`.
+- **Planned Backend API**: `http://localhost:5000/api` (placeholder in `frontend/src/services/api.js`); Python Flask + SQLite persistence will be added in a later phase.

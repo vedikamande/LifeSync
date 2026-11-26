@@ -2,7 +2,7 @@ import { Calendar, Check, Pencil, Trash2 } from 'lucide-react'
 import { formatDueDate } from '../utils/taskUtils.js'
 
 /**
- * Renders a single task card with completion checkbox, metadata badges, and edit/delete actions.
+ * Renders a single task row with completion checkbox, metadata tags, and edit/delete actions.
  */
 function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
   return (
@@ -17,7 +17,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
             : `Mark "${task.title}" as completed`
         }
       >
-        {task.completed && <Check size={14} />}
+        {task.completed && <Check size={14} strokeWidth={2} />}
       </button>
 
       <div className="task-body">
@@ -45,7 +45,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
           </span>
 
           <span className="due-date-text">
-            <Calendar size={13} />
+            <Calendar size={14} strokeWidth={1.5} />
             <span>{formatDueDate(task.dueDate)}</span>
           </span>
         </div>
@@ -59,7 +59,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
           aria-label={`Edit "${task.title}"`}
           title="Edit task"
         >
-          <Pencil size={15} />
+          <Pencil size={16} strokeWidth={1.5} />
         </button>
 
         <button
@@ -69,7 +69,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
           aria-label={`Delete "${task.title}"`}
           title="Delete task"
         >
-          <Trash2 size={15} />
+          <Trash2 size={16} strokeWidth={1.5} />
         </button>
       </div>
     </li>

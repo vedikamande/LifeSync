@@ -5,7 +5,6 @@ import {
   Minus,
   Pencil,
   Plus,
-  Target,
   Trash2,
 } from 'lucide-react'
 import {
@@ -15,7 +14,7 @@ import {
 } from '../utils/goalUtils.js'
 
 /**
- * Individual goal card with badges, deadline alert, progress controls, and actions.
+ * Individual goal card with category dot, status/deadline tags, progress bar, and actions.
  */
 function GoalCard({
   goal,
@@ -34,49 +33,45 @@ function GoalCard({
       }`}
     >
       <div className="goal-card-top">
-        <div className="goal-title-wrap">
-          <span className="goal-icon" aria-hidden="true">
-            <Target size={16} />
-          </span>
+        <div className="goal-heading-block">
+          <button
+            type="button"
+            className="goal-title-btn"
+            onClick={() => onViewDetails(goal)}
+          >
+            {goal.title}
+          </button>
 
-          <div className="goal-heading-block">
-            <button
-              type="button"
-              className="goal-title-btn"
-              onClick={() => onViewDetails(goal)}
+          <div className="goal-badges-row">
+            <span className="goal-category-badge">
+              <span
+                className={`category-dot dot-${goal.category.toLowerCase()}`}
+                aria-hidden="true"
+              />
+              {goal.category}
+            </span>
+
+            <span
+              className={`goal-status-badge status-${status
+                .toLowerCase()
+                .replace(/\s+/g, '-')}`}
             >
-              {goal.title}
-            </button>
+              {status}
+            </span>
 
-            <div className="goal-badges-row">
-              <span
-                className={`goal-category-badge category-${goal.category.toLowerCase()}`}
-              >
-                {goal.category}
+            {deadline.state === 'overdue' && (
+              <span className="deadline-pill deadline-overdue">
+                <AlertCircle size={14} strokeWidth={1.5} />
+                {deadline.badgeText}
               </span>
+            )}
 
-              <span
-                className={`goal-status-badge status-${status
-                  .toLowerCase()
-                  .replace(/\s+/g, '-')}`}
-              >
-                {status}
+            {deadline.state === 'upcoming' && (
+              <span className="deadline-pill deadline-upcoming">
+                <Calendar size={14} strokeWidth={1.5} />
+                {deadline.badgeText}
               </span>
-
-              {deadline.state === 'overdue' && (
-                <span className="deadline-pill deadline-overdue">
-                  <AlertCircle size={12} />
-                  {deadline.badgeText}
-                </span>
-              )}
-
-              {deadline.state === 'upcoming' && (
-                <span className="deadline-pill deadline-upcoming">
-                  <Calendar size={12} />
-                  {deadline.badgeText}
-                </span>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
@@ -88,7 +83,7 @@ function GoalCard({
             aria-label={`View details for ${goal.title}`}
             title="View details"
           >
-            <Eye size={15} />
+            <Eye size={16} strokeWidth={1.5} />
           </button>
 
           <button
@@ -98,7 +93,7 @@ function GoalCard({
             aria-label={`Edit ${goal.title}`}
             title="Edit goal"
           >
-            <Pencil size={15} />
+            <Pencil size={16} strokeWidth={1.5} />
           </button>
 
           <button
@@ -108,7 +103,7 @@ function GoalCard({
             aria-label={`Delete ${goal.title}`}
             title="Delete goal"
           >
-            <Trash2 size={15} />
+            <Trash2 size={16} strokeWidth={1.5} />
           </button>
         </div>
       </div>
@@ -120,12 +115,12 @@ function GoalCard({
       <div className="goal-progress-section">
         <div className="goal-progress-meta">
           <span className="goal-deadline-text">
-            <Calendar size={13} />
+            <Calendar size={14} strokeWidth={1.5} />
             <span>
-              Deadline:{' '}
+              Deadline{' '}
               {goal.targetDate
                 ? formatGoalDate(goal.targetDate)
-                : 'No deadline'}
+                : 'Not set'}
             </span>
           </span>
 
@@ -137,7 +132,7 @@ function GoalCard({
               disabled={goal.progress <= 0}
               aria-label={`Decrease progress for ${goal.title}`}
             >
-              <Minus size={14} />
+              <Minus size={14} strokeWidth={1.5} />
             </button>
             <span className="goal-percent">{goal.progress}%</span>
             <button
@@ -147,7 +142,7 @@ function GoalCard({
               disabled={goal.progress >= 100}
               aria-label={`Increase progress for ${goal.title}`}
             >
-              <Plus size={14} />
+              <Plus size={14} strokeWidth={1.5} />
             </button>
           </div>
         </div>

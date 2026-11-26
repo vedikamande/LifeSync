@@ -1,16 +1,27 @@
 import { Calendar, Menu, User } from 'lucide-react'
 
 const FORMATTED_DATE = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'long',
+  weekday: 'short',
+  month: 'short',
   day: 'numeric',
   year: 'numeric',
 })
 
+const SECTION_TITLES = {
+  overview: 'Overview',
+  tasks: 'My Tasks',
+  habits: 'Habit Tracker',
+  goals: 'My Goals',
+  activities: 'Activities',
+  settings: 'Settings',
+}
+
 /**
- * Top dashboard header showing greeting, formatted current date, and profile icon.
+ * Top bar showing the active workspace title, morning context, formatted date, and profile icon.
  */
-function DashboardHeader({ onOpenMenu }) {
+function DashboardHeader({ activeSection = 'overview', onOpenMenu }) {
+  const pageTitle = SECTION_TITLES[activeSection] || 'Overview'
+
   return (
     <header className="dashboard-header">
       <div className="header-left">
@@ -20,27 +31,25 @@ function DashboardHeader({ onOpenMenu }) {
           onClick={onOpenMenu}
           aria-label="Open navigation menu"
         >
-          <Menu size={20} />
+          <Menu size={16} strokeWidth={1.5} />
         </button>
 
         <div>
-          <h1 className="header-greeting">Good Morning!</h1>
-          <p className="header-subtitle">
-            Stay organized and track your daily progress in LifeSync.
-          </p>
+          <h1 className="header-title">{pageTitle}</h1>
+          <p className="header-subtitle">Good morning · Daily planner</p>
         </div>
       </div>
 
       <div className="header-right">
-        <div className="date-badge">
-          <Calendar size={16} />
+        <div className="date-meta">
+          <Calendar size={16} strokeWidth={1.5} />
           <span>{FORMATTED_DATE}</span>
         </div>
 
-        <div className="profile-badge" title="User Profile">
-          <div className="profile-avatar">
-            <User size={18} />
-          </div>
+        <div className="profile-chip" title="Personal account">
+          <span className="profile-avatar" aria-hidden="true">
+            <User size={16} strokeWidth={1.5} />
+          </span>
           <span className="profile-label">Personal</span>
         </div>
       </div>

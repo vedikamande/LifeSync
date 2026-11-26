@@ -17,7 +17,10 @@ function App() {
       />
 
       <div className="main-panel">
-        <DashboardHeader onOpenMenu={() => setMobileMenuOpen(true)} />
+        <DashboardHeader
+          activeSection={activeSection}
+          onOpenMenu={() => setMobileMenuOpen(true)}
+        />
         <HomePage activeSection={activeSection} />
       </div>
     </div>

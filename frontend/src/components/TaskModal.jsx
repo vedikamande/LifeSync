@@ -73,7 +73,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
             onClick={onClose}
             aria-label="Close task form"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 

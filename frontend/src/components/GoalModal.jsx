@@ -92,7 +92,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
             onClick={onClose}
             aria-label="Close goal form"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 
