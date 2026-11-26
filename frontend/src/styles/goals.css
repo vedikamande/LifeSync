@@ -1,0 +1,344 @@
+/* Goal Tracker Dashboard Metrics */
+.goal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-bottom: 1rem;
+}
+
+.goal-stat-box {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.72rem 0.85rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-subtle);
+}
+
+.goal-stat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+}
+
+.tone-blue {
+  background-color: var(--blue-soft);
+  color: var(--blue-600);
+}
+
+.tone-emerald {
+  background-color: var(--emerald-soft);
+  color: var(--emerald-700);
+}
+
+.tone-lavender {
+  background-color: var(--lavender-soft);
+  color: var(--lavender-600);
+}
+
+.tone-slate {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.goal-stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--text-main);
+}
+
+.goal-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* Deadline Summary Bar */
+.deadline-summary-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.95rem;
+}
+
+/* Goal Cards */
+.goal-card {
+  padding: 1rem 1.05rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-subtle);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.goal-card:hover {
+  background-color: var(--bg-surface);
+}
+
+.goal-card.goal-overdue {
+  border-color: #fecaca;
+  background-color: #fffafa;
+}
+
+.goal-card.goal-completed {
+  border-color: #bbf7d0;
+}
+
+.goal-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.goal-heading-block {
+  min-width: 0;
+}
+
+.goal-title-btn {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text-main);
+  text-align: left;
+  cursor: pointer;
+}
+
+.goal-title-btn:hover {
+  color: var(--blue-600);
+  text-decoration: underline;
+}
+
+.goal-badges-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.goal-category-badge,
+.goal-status-badge,
+.deadline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.16rem 0.54rem;
+  border-radius: 999px;
+}
+
+/* Category Colors */
+.category-study {
+  background-color: var(--blue-soft);
+  color: var(--blue-600);
+}
+
+.category-career {
+  background-color: var(--lavender-soft);
+  color: var(--lavender-600);
+}
+
+.category-health {
+  background-color: var(--emerald-soft);
+  color: var(--emerald-700);
+}
+
+.category-personal {
+  background-color: var(--amber-soft);
+  color: var(--amber-700);
+}
+
+/* Goal Status Colors */
+.status-not-started {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.status-in-progress {
+  background-color: var(--blue-soft);
+  color: var(--blue-600);
+}
+
+.status-completed {
+  background-color: var(--emerald-soft);
+  color: var(--emerald-700);
+}
+
+/* Deadline Pills */
+.deadline-overdue {
+  background-color: var(--danger-soft);
+  color: var(--danger-600);
+}
+
+.deadline-upcoming {
+  background-color: var(--amber-soft);
+  color: var(--amber-700);
+}
+
+.goal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.goal-description {
+  margin: 0.6rem 0 0;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+.goal-progress-section {
+  margin-top: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.goal-progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.goal-deadline-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.progress-fill.progress-complete {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.progress-input-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.progress-range {
+  width: 100%;
+  accent-color: var(--blue-600);
+  cursor: pointer;
+}
+
+.compact-range {
+  margin-top: 0.15rem;
+  height: 16px;
+}
+
+/* Goal Details Modal */
+.goal-details-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.goal-details-badges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.35rem;
+}
+
+.goal-details-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.details-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.details-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.details-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  line-height: 1.55;
+}
+
+.details-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.details-date-card {
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-subtle);
+}
+
+.details-value {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.details-progress-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.deadline-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .goal-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .goal-stats-grid,
+  .details-dates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .goal-card-top {
+    flex-direction: column;
+  }
+}
