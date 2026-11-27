@@ -1,5 +1,5 @@
 import { getGoalStatus, getGoalSummary, getTodayDateString } from './goalUtils.js'
-import { getPastDateKeys } from './habitUtils.js'
+import { getPastDateKeys, isHabitCompletedOnDate } from './habitUtils.js'
 
 /**
  * Computes Task Statistics from actual tasks state.
@@ -21,7 +21,9 @@ export function getHabitReportStats(
   referenceDate = getTodayDateString(),
 ) {
   const total = habits.length
-  const completedToday = habits.filter((habit) => habit.completed).length
+  const completedToday = habits.filter((habit) =>
+    isHabitCompletedOnDate(habit, referenceDate),
+  ).length
   const dateKeys = getPastDateKeys(7, referenceDate)
 
   if (total === 0) {
@@ -52,7 +54,7 @@ export function getHabitReportStats(
       id: habit.id,
       name: habit.name,
       streakDays,
-      completedToday: Boolean(habit.completed),
+      completedToday: isHabitCompletedOnDate(habit, referenceDate),
     }
   })
 
@@ -147,10 +149,15 @@ export function getWeeklyTaskChartData(
 /**
  * Builds Habit completion pie chart data from today's habit status.
  */
-export function getHabitPieChartData(habits) {
+export function getHabitPieChartData(
+  habits,
+  referenceDate = getTodayDateString(),
+) {
   if (habits.length === 0) return []
 
-  const completed = habits.filter((habit) => habit.completed).length
+  const completed = habits.filter((habit) =>
+    isHabitCompletedOnDate(habit, referenceDate),
+  ).length
   const remaining = habits.length - completed
 
   return [

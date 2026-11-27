@@ -26,8 +26,9 @@ import {
 } from '../utils/goalUtils.js'
 import {
   loadHabitsFromStorage,
+  markHabitCompletedForDate,
+  normalizeHabit,
   saveHabitsToStorage,
-  toggleHabitCompletion,
 } from '../utils/habitUtils.js'
 import { loadTasksFromStorage, saveTasksToStorage } from '../utils/taskUtils.js'
 
@@ -114,22 +115,58 @@ function HomePage({ activeSection }) {
     }
   }
 
-  function handleToggleHabit(habitId) {
+  function handleAddHabit(habitData) {
+    const newHabit = normalizeHabit({
+      id: Date.now(),
+      ...habitData,
+      completedDates: [],
+    })
+    setHabits((prev) => [newHabit, ...prev])
+    pushActivity(
+      'habit',
+      'Habit created',
+      `Added "${newHabit.name}" (${newHabit.category})`,
+    )
+  }
+
+  function handleEditHabit(habitId, updatedFields) {
     const target = habits.find((habit) => habit.id === habitId)
     if (!target) return
 
-    const updatedHabit = toggleHabitCompletion(target)
+    const updatedHabit = normalizeHabit({ ...target, ...updatedFields })
     setHabits((prev) =>
       prev.map((habit) => (habit.id === habitId ? updatedHabit : habit)),
     )
+    pushActivity('habit', 'Habit updated', `Updated "${updatedHabit.name}"`)
+  }
 
-    if (updatedHabit.completed) {
-      pushActivity(
-        'habit',
-        'Habit completed',
-        `Checked off "${updatedHabit.name}" (${updatedHabit.streak} streak)`,
-      )
+  function handleDeleteHabit(habitId) {
+    const target = habits.find((habit) => habit.id === habitId)
+    setHabits((prev) => prev.filter((habit) => habit.id !== habitId))
+
+    if (target) {
+      pushActivity('habit', 'Habit deleted', `Removed "${target.name}"`)
     }
+  }
+
+  function handleCompleteHabitForDate(habitId, dateKey) {
+    const target = habits.find((habit) => habit.id === habitId)
+    if (!target) return
+
+    const { habit: updatedHabit, alreadyCompleted } = markHabitCompletedForDate(
+      target,
+      dateKey,
+    )
+    if (alreadyCompleted) return
+
+    setHabits((prev) =>
+      prev.map((habit) => (habit.id === habitId ? updatedHabit : habit)),
+    )
+    pushActivity(
+      'habit',
+      'Habit completed',
+      `Checked off "${updatedHabit.name}" on ${dateKey} (${updatedHabit.streakDays} day streak)`,
+    )
   }
 
   function handleAddGoal(goalData) {
@@ -230,7 +267,13 @@ function HomePage({ activeSection }) {
           </div>
 
           <div className="grid-column">
-            <HabitTracker habits={habits} onToggleHabit={handleToggleHabit} />
+            <HabitTracker
+              habits={habits}
+              onAddHabit={handleAddHabit}
+              onEditHabit={handleEditHabit}
+              onDeleteHabit={handleDeleteHabit}
+              onCompleteHabitForDate={handleCompleteHabitForDate}
+            />
             <RecentActivities
               activities={activities}
               maxItems={OVERVIEW_ACTIVITY_LIMIT}
@@ -250,7 +293,13 @@ function HomePage({ activeSection }) {
       )}
 
       {activeSection === 'habits' && (
-        <HabitTracker habits={habits} onToggleHabit={handleToggleHabit} />
+        <HabitTracker
+          habits={habits}
+          onAddHabit={handleAddHabit}
+          onEditHabit={handleEditHabit}
+          onDeleteHabit={handleDeleteHabit}
+          onCompleteHabitForDate={handleCompleteHabitForDate}
+        />
       )}
 
       {activeSection === 'goals' && (
