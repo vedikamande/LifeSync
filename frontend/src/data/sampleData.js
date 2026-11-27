@@ -165,3 +165,36 @@ export const INITIAL_ACTIVITIES = [
     timestamp: buildIsoOffset(2, 16, 10),
   },
 ]
+
+export const INITIAL_EVENTS = [
+  {
+    id: 1,
+    title: 'Sprint Planning & Weekly Review',
+    description: 'Review upcoming LifeSync milestones and prioritize tasks.',
+    date: getTodayDateString(),
+    startTime: '10:00',
+    endTime: '10:45',
+    category: 'Meeting',
+    priority: 'High',
+  },
+  {
+    id: 2,
+    title: 'React State & Hooks Study Block',
+    description: 'Practice building reusable calendar and modal components.',
+    date: '2026-11-28',
+    startTime: '15:00',
+    endTime: '16:30',
+    category: 'Education',
+    priority: 'Medium',
+  },
+  {
+    id: 3,
+    title: 'Evening Walk & Stretch',
+    description: '30-minute outdoor walk away from screens.',
+    date: '2026-11-29',
+    startTime: '18:00',
+    endTime: '18:30',
+    category: 'Personal',
+    priority: 'Low',
+  },
+]

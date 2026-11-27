@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CheckCircle2, Flame, TrendingUp } from 'lucide-react'
+import { CalendarDays, CheckCircle2, Flame, TrendingUp } from 'lucide-react'
 import {
   ACTIVITY_FILTERS,
   filterActivities,
@@ -11,6 +11,7 @@ const ACTIVITY_META = {
   task: { label: 'Task', icon: CheckCircle2 },
   goal: { label: 'Goal', icon: TrendingUp },
   habit: { label: 'Habit', icon: Flame },
+  event: { label: 'Event', icon: CalendarDays },
 }
 
 /**

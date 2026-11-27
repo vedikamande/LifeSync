@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import CalendarSection from '../components/CalendarSection.jsx'
 import GoalsSection from '../components/GoalsSection.jsx'
 import HabitTracker from '../components/HabitTracker.jsx'
 import RecentActivities from '../components/RecentActivities.jsx'
@@ -8,6 +9,7 @@ import StatsCards from '../components/StatsCards.jsx'
 import TodayTasks from '../components/TodayTasks.jsx'
 import {
   INITIAL_ACTIVITIES,
+  INITIAL_EVENTS,
   INITIAL_GOALS,
   INITIAL_HABITS,
   INITIAL_TASKS,
@@ -17,6 +19,11 @@ import {
   loadActivitiesFromStorage,
   saveActivitiesToStorage,
 } from '../utils/activityUtils.js'
+import {
+  loadEventsFromStorage,
+  normalizeEvent,
+  saveEventsToStorage,
+} from '../utils/calendarUtils.js'
 import {
   clampProgress,
   getGoalStatus,
@@ -43,6 +50,9 @@ function HomePage({ activeSection }) {
     loadHabitsFromStorage(INITIAL_HABITS),
   )
   const [goals, setGoals] = useState(() => loadGoalsFromStorage(INITIAL_GOALS))
+  const [events, setEvents] = useState(() =>
+    loadEventsFromStorage(INITIAL_EVENTS),
+  )
   const [activities, setActivities] = useState(() =>
     loadActivitiesFromStorage(INITIAL_ACTIVITIES),
   )
@@ -58,6 +68,10 @@ function HomePage({ activeSection }) {
   useEffect(() => {
     saveGoalsToStorage(goals)
   }, [goals])
+
+  useEffect(() => {
+    saveEventsToStorage(events)
+  }, [events])
 
   useEffect(() => {
     saveActivitiesToStorage(activities)
@@ -234,6 +248,43 @@ function HomePage({ activeSection }) {
     )
   }
 
+  function handleAddEvent(eventData) {
+    const newEvent = normalizeEvent({
+      id: Date.now(),
+      ...eventData,
+    })
+    setEvents((prev) => [newEvent, ...prev])
+    pushActivity(
+      'event',
+      'Event scheduled',
+      `Added "${newEvent.title}" on ${newEvent.date}`,
+    )
+  }
+
+  function handleEditEvent(eventId, updatedFields) {
+    const target = events.find((event) => event.id === eventId)
+    if (!target) return
+
+    const updatedEvent = normalizeEvent({ ...target, ...updatedFields })
+    setEvents((prev) =>
+      prev.map((event) => (event.id === eventId ? updatedEvent : event)),
+    )
+    pushActivity(
+      'event',
+      'Event updated',
+      `Updated "${updatedEvent.title}" (${updatedEvent.date})`,
+    )
+  }
+
+  function handleDeleteEvent(eventId) {
+    const target = events.find((event) => event.id === eventId)
+    setEvents((prev) => prev.filter((event) => event.id !== eventId))
+
+    if (target) {
+      pushActivity('event', 'Event deleted', `Removed "${target.title}"`)
+    }
+  }
+
   const totalTasks = tasks.length
   const completedTasks = tasks.filter((task) => task.completed).length
   const pendingTasks = totalTasks - completedTasks
@@ -243,7 +294,9 @@ function HomePage({ activeSection }) {
 
   return (
     <main className="dashboard-content">
-      {activeSection !== 'settings' && activeSection !== 'reports' && (
+      {activeSection !== 'settings' &&
+        activeSection !== 'reports' &&
+        activeSection !== 'calendar' && (
         <StatsCards
           totalTasks={totalTasks}
           completedTasks={completedTasks}
@@ -314,6 +367,18 @@ function HomePage({ activeSection }) {
           onEditGoal={handleEditGoal}
           onDeleteGoal={handleDeleteGoal}
           onSetGoalProgress={handleSetGoalProgress}
+        />
+      )}
+
+      {activeSection === 'calendar' && (
+        <CalendarSection
+          events={events}
+          tasks={tasks}
+          habits={habits}
+          goals={goals}
+          onAddEvent={handleAddEvent}
+          onEditEvent={handleEditEvent}
+          onDeleteEvent={handleDeleteEvent}
         />
       )}
 

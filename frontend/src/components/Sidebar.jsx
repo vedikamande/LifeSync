@@ -1,6 +1,7 @@
 import {
   Activity,
   BarChart3,
+  CalendarDays,
   CheckSquare,
   Flame,
   LayoutDashboard,
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { id: 'tasks', label: 'My Tasks', icon: CheckSquare },
   { id: 'habits', label: 'Habit Tracker', icon: Flame },
   { id: 'goals', label: 'My Goals', icon: Target },
+  { id: 'calendar', label: 'Calendar', icon: CalendarDays },
   { id: 'activities', label: 'Activities', icon: Activity },
   { id: 'reports', label: 'Reports', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
