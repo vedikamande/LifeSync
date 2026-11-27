@@ -1,16 +1,17 @@
 import { getGoalSummary } from '../utils/goalUtils.js'
 
 /**
- * Displays the 4 Goal Dashboard figures: Total, Completed, In Progress, Not Started.
+ * Displays Goal Dashboard metrics: Total, Completed, Active, Overdue, and Overall Progress.
  */
 function GoalStats({ goals }) {
   const summary = getGoalSummary(goals)
 
   const items = [
     { label: 'Total goals', value: summary.total },
-    { label: 'Completed', value: summary.completed },
-    { label: 'In progress', value: summary.inProgress },
-    { label: 'Not started', value: summary.notStarted },
+    { label: 'Completed goals', value: summary.completed },
+    { label: 'Active goals', value: summary.active },
+    { label: 'Overdue goals', value: summary.overdue },
+    { label: 'Overall progress', value: `${summary.overallProgress}%` },
   ]
 
   return (

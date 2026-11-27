@@ -5,17 +5,20 @@ import {
   clampProgress,
   getGoalStatus,
   getTodayDateString,
+  normalizeGoalCategory,
 } from '../utils/goalUtils.js'
 
 /**
- * Modal form for adding a new goal or editing an existing goal.
+ * Modal form for adding a new goal (starting at 0%) or editing an existing goal.
  */
 function GoalModal({ initialGoal, onSave, onClose }) {
   const isEditing = Boolean(initialGoal)
 
   const [title, setTitle] = useState(initialGoal?.title ?? '')
   const [description, setDescription] = useState(initialGoal?.description ?? '')
-  const [category, setCategory] = useState(initialGoal?.category ?? 'Study')
+  const [category, setCategory] = useState(
+    initialGoal ? normalizeGoalCategory(initialGoal.category) : 'Personal',
+  )
   const [startDate, setStartDate] = useState(
     initialGoal?.startDate ?? getTodayDateString(),
   )
@@ -36,7 +39,8 @@ function GoalModal({ initialGoal, onSave, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const derivedStatus = getGoalStatus(progress)
+  const safeProgress = isEditing ? clampProgress(progress) : 0
+  const derivedStatus = getGoalStatus(safeProgress, targetDate)
 
   function handleSubmit(event) {
     event.preventDefault()
@@ -52,8 +56,6 @@ function GoalModal({ initialGoal, onSave, onClose }) {
       return
     }
 
-    const safeProgress = clampProgress(progress)
-
     onSave({
       title: trimmedTitle,
       description: description.trim(),
@@ -61,7 +63,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
       startDate,
       targetDate,
       progress: safeProgress,
-      status: getGoalStatus(safeProgress),
+      status: getGoalStatus(safeProgress, targetDate),
     })
   }
 
@@ -77,12 +79,12 @@ function GoalModal({ initialGoal, onSave, onClose }) {
         <div className="modal-header">
           <div>
             <h3 id="goal-modal-title" className="modal-title">
-              {isEditing ? 'Edit Goal' : 'Add New Goal'}
+              {isEditing ? 'Edit goal' : 'Add new goal'}
             </h3>
             <p className="modal-subtitle">
               {isEditing
-                ? 'Update your goal details, deadline, or progress.'
-                : 'Define a clear goal, timeline, and starting progress.'}
+                ? 'Update goal details, target date, or progress'
+                : 'New goals start at 0% progress'}
             </p>
           </div>
 
@@ -99,7 +101,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
         <form className="modal-form" onSubmit={handleSubmit}>
           <div className="form-group">
             <label htmlFor="goal-title" className="form-label">
-              Goal Title <span className="required-star">*</span>
+              Goal title <span className="required-star">*</span>
             </label>
             <input
               id="goal-title"
@@ -150,7 +152,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="goal-start-date" className="form-label">
-                Start Date
+                Start date
               </label>
               <input
                 id="goal-start-date"
@@ -166,7 +168,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
 
             <div className="form-group">
               <label htmlFor="goal-target-date" className="form-label">
-                Target Completion Date
+                Target completion date
               </label>
               <input
                 id="goal-target-date"
@@ -181,30 +183,34 @@ function GoalModal({ initialGoal, onSave, onClose }) {
             </div>
           </div>
 
-          <div className="form-group">
-            <div className="progress-input-header">
-              <label htmlFor="goal-progress" className="form-label">
-                Initial Progress Percentage: <strong>{progress}%</strong>
-              </label>
-              <span
-                className={`goal-status-badge status-${derivedStatus
-                  .toLowerCase()
-                  .replace(/\s+/g, '-')}`}
-              >
-                {derivedStatus}
-              </span>
+          {isEditing && (
+            <div className="form-group">
+              <div className="progress-input-header">
+                <label htmlFor="goal-progress" className="form-label">
+                  Progress percentage: <strong>{safeProgress}%</strong>
+                </label>
+                <span
+                  className={`goal-status-badge status-${derivedStatus
+                    .toLowerCase()
+                    .replace(/\s+/g, '-')}`}
+                >
+                  {derivedStatus}
+                </span>
+              </div>
+              <input
+                id="goal-progress"
+                type="range"
+                min="0"
+                max="100"
+                step="5"
+                className="progress-range"
+                value={safeProgress}
+                onChange={(event) =>
+                  setProgress(clampProgress(event.target.value))
+                }
+              />
             </div>
-            <input
-              id="goal-progress"
-              type="range"
-              min="0"
-              max="100"
-              step="5"
-              className="progress-range"
-              value={progress}
-              onChange={(event) => setProgress(clampProgress(event.target.value))}
-            />
-          </div>
+          )}
 
           {error && <p className="form-error">{error}</p>}
 
@@ -213,7 +219,7 @@ function GoalModal({ initialGoal, onSave, onClose }) {
               Cancel
             </button>
             <button type="submit" className="btn-primary">
-              {isEditing ? 'Save Changes' : 'Save Goal'}
+              {isEditing ? 'Save changes' : 'Save goal'}
             </button>
           </div>
         </form>

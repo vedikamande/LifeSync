@@ -203,7 +203,12 @@ function HomePage({ activeSection }) {
   }
 
   function handleDeleteGoal(goalId) {
+    const target = goals.find((goal) => goal.id === goalId)
     setGoals((prev) => prev.filter((goal) => goal.id !== goalId))
+
+    if (target) {
+      pushActivity('goal', 'Goal deleted', `Removed "${target.title}"`)
+    }
   }
 
   function handleSetGoalProgress(goalId, rawProgress) {
@@ -213,7 +218,7 @@ function HomePage({ activeSection }) {
     const nextProgress = clampProgress(rawProgress)
     if (nextProgress === target.progress) return
 
-    const nextStatus = getGoalStatus(nextProgress)
+    const nextStatus = getGoalStatus(nextProgress, target.targetDate)
     setGoals((prev) =>
       prev.map((goal) =>
         goal.id === goalId

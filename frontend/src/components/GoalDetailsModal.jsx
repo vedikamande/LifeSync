@@ -21,7 +21,7 @@ function GoalDetailsModal({ goal, onEdit, onClose }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
-  const status = getGoalStatus(goal.progress)
+  const status = getGoalStatus(goal.progress, goal.targetDate)
   const deadline = getDeadlineInfo(goal.targetDate, goal.progress)
 
   return (

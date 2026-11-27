@@ -94,7 +94,7 @@ export const INITIAL_GOALS = [
     title: 'Learn React',
     description:
       'Master React functional components, props, useState, useEffect, and reusable UI architecture.',
-    category: 'Study',
+    category: 'Education',
     startDate: '2026-10-15',
     targetDate: '2026-11-30',
     progress: 65,
@@ -109,14 +109,14 @@ export const INITIAL_GOALS = [
     startDate: '2026-10-01',
     targetDate: '2026-11-20',
     progress: 40,
-    status: 'In Progress',
+    status: 'Overdue',
   },
   {
     id: 3,
     title: 'Improve Python Skills',
     description:
       'Practice Python functions, REST API design, and SQLite queries for backend development.',
-    category: 'Study',
+    category: 'Education',
     startDate: '2026-11-01',
     targetDate: '2026-12-15',
     progress: 80,
@@ -127,7 +127,7 @@ export const INITIAL_GOALS = [
     title: 'Build Morning Fitness Routine',
     description:
       'Establish a consistent 30-minute stretching and cardio schedule three mornings a week.',
-    category: 'Health',
+    category: 'Fitness',
     startDate: '2026-11-26',
     targetDate: '2026-12-20',
     progress: 0,

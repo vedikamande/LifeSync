@@ -5,6 +5,7 @@ import {
   GOAL_STATUSES,
   filterGoals,
   getDeadlineInfo,
+  sortGoalsByTargetDate,
 } from '../utils/goalUtils.js'
 import ConfirmModal from './ConfirmModal.jsx'
 import GoalCard from './GoalCard.jsx'
@@ -15,7 +16,7 @@ import GoalStats from './GoalStats.jsx'
 const STATUS_TABS = ['All', ...GOAL_STATUSES]
 
 /**
- * Complete Goal Tracker workspace with Goal Dashboard stats, deadline alerts, search, filters, and CRUD modals.
+ * Complete Goal Management workspace with 5 KPI stats, category/status filters, target-date sorting, and CRUD modals.
  */
 function GoalsSection({
   goals,
@@ -27,6 +28,7 @@ function GoalsSection({
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
+  const [sortBy, setSortBy] = useState('default')
 
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
   const [editingGoal, setEditingGoal] = useState(null)
@@ -38,6 +40,7 @@ function GoalsSection({
     categoryFilter,
     statusFilter,
   })
+  const visibleGoals = sortGoalsByTargetDate(filteredGoals, sortBy)
 
   const detailsGoal = goals.find((goal) => goal.id === detailsGoalId) || null
 
@@ -51,7 +54,8 @@ function GoalsSection({
   const hasActiveFilters =
     searchQuery.trim() !== '' ||
     categoryFilter !== 'All' ||
-    statusFilter !== 'All'
+    statusFilter !== 'All' ||
+    sortBy !== 'default'
 
   function openAddModal() {
     setEditingGoal(null)
@@ -91,6 +95,7 @@ function GoalsSection({
     setSearchQuery('')
     setCategoryFilter('All')
     setStatusFilter('All')
+    setSortBy('default')
   }
 
   return (
@@ -158,19 +163,32 @@ function GoalsSection({
             ))}
           </div>
 
-          <select
-            className="priority-select"
-            value={categoryFilter}
-            onChange={(event) => setCategoryFilter(event.target.value)}
-            aria-label="Filter by goal category"
-          >
-            <option value="All">All categories</option>
-            {GOAL_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <div className="goal-filter-selects">
+            <select
+              className="priority-select"
+              value={categoryFilter}
+              onChange={(event) => setCategoryFilter(event.target.value)}
+              aria-label="Filter by goal category"
+            >
+              <option value="All">All categories</option>
+              {GOAL_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+
+            <select
+              className="priority-select"
+              value={sortBy}
+              onChange={(event) => setSortBy(event.target.value)}
+              aria-label="Sort goals by target date"
+            >
+              <option value="default">Sort: Default</option>
+              <option value="earliest">Target date: Earliest</option>
+              <option value="latest">Target date: Latest</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -178,7 +196,7 @@ function GoalsSection({
         <div className="empty-state">
           <p>No goals yet. Use Add goal to create your first milestone.</p>
         </div>
-      ) : filteredGoals.length === 0 ? (
+      ) : visibleGoals.length === 0 ? (
         <div className="empty-state">
           <p>No goals match the current search or filters.</p>
           {hasActiveFilters && (
@@ -193,7 +211,7 @@ function GoalsSection({
         </div>
       ) : (
         <div className="goals-list">
-          {filteredGoals.map((goal) => (
+          {visibleGoals.map((goal) => (
             <GoalCard
               key={goal.id}
               goal={goal}

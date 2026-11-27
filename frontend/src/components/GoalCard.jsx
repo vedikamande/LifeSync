@@ -1,5 +1,4 @@
 import {
-  AlertCircle,
   Calendar,
   Eye,
   Minus,
@@ -23,12 +22,12 @@ function GoalCard({
   onEdit,
   onRequestDelete,
 }) {
-  const status = getGoalStatus(goal.progress)
+  const status = getGoalStatus(goal.progress, goal.targetDate)
   const deadline = getDeadlineInfo(goal.targetDate, goal.progress)
 
   return (
     <article
-      className={`goal-card ${deadline.state === 'overdue' ? 'goal-overdue' : ''} ${
+      className={`goal-card ${status === 'Overdue' ? 'goal-overdue' : ''} ${
         status === 'Completed' ? 'goal-completed' : ''
       }`}
     >
@@ -58,13 +57,6 @@ function GoalCard({
             >
               {status}
             </span>
-
-            {deadline.state === 'overdue' && (
-              <span className="deadline-pill deadline-overdue">
-                <AlertCircle size={14} strokeWidth={1.5} />
-                {deadline.badgeText}
-              </span>
-            )}
 
             {deadline.state === 'upcoming' && (
               <span className="deadline-pill deadline-upcoming">
@@ -117,10 +109,13 @@ function GoalCard({
           <span className="goal-deadline-text">
             <Calendar size={14} strokeWidth={1.5} />
             <span>
-              Deadline{' '}
-              {goal.targetDate
-                ? formatGoalDate(goal.targetDate)
-                : 'Not set'}
+              {deadline.state === 'overdue'
+                ? `${formatGoalDate(goal.targetDate)} (${deadline.badgeText})`
+                : `Target ${
+                    goal.targetDate
+                      ? formatGoalDate(goal.targetDate)
+                      : 'Not set'
+                  }`}
             </span>
           </span>
 
