@@ -3,6 +3,7 @@ Main entry point for the LifeSync Python Flask REST API backed by SQLite.
 Run this file inside backend/venv to start the server on http://localhost:5000.
 """
 
+from datetime import date
 from flask import Flask, jsonify
 from flask_cors import CORS
 
@@ -51,6 +52,56 @@ def create_app(db_path=None):
             ),
             200,
         )
+
+    @app.route("/api/dashboard/summary", methods=["GET"])
+    def dashboard_summary():
+        """Returns real-time aggregate statistics queried directly from SQLite."""
+        today_str = date.today().isoformat()
+        conn = get_db_connection(app.config["DATABASE_PATH"])
+        try:
+            total_tasks = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+            completed_tasks = conn.execute(
+                "SELECT COUNT(*) FROM tasks WHERE status = 'Completed'"
+            ).fetchone()[0]
+            pending_tasks = total_tasks - completed_tasks
+
+            total_habits = conn.execute("SELECT COUNT(*) FROM habits").fetchone()[0]
+            completed_habits_today = conn.execute(
+                """
+                SELECT COUNT(DISTINCT habit_id)
+                FROM habit_logs
+                WHERE completion_date = ? AND completed = 1
+                """,
+                (today_str,),
+            ).fetchone()[0]
+
+            total_goals = conn.execute("SELECT COUNT(*) FROM goals").fetchone()[0]
+            completed_goals = conn.execute(
+                "SELECT COUNT(*) FROM goals WHERE progress = 100"
+            ).fetchone()[0]
+
+            upcoming_events = conn.execute(
+                "SELECT COUNT(*) FROM events WHERE date >= ?",
+                (today_str,),
+            ).fetchone()[0]
+
+            return (
+                jsonify(
+                    {
+                        "totalTasks": total_tasks,
+                        "completedTasks": completed_tasks,
+                        "pendingTasks": pending_tasks,
+                        "totalHabits": total_habits,
+                        "completedHabitsToday": completed_habits_today,
+                        "totalGoals": total_goals,
+                        "completedGoals": completed_goals,
+                        "upcomingEvents": upcoming_events,
+                    }
+                ),
+                200,
+            )
+        finally:
+            conn.close()
 
     @app.errorhandler(400)
     def handle_bad_request(_error):

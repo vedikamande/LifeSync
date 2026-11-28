@@ -1143,6 +1143,55 @@ textarea:focus-visible {
   color: var(--text-secondary);
 }
 
+/* API Loading, Success, and Error Banners */
+.feedback-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--border-hairline);
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.banner-loading {
+  background-color: var(--accent-soft);
+  border-color: rgba(29, 78, 216, 0.18);
+  color: var(--accent-ink);
+}
+
+.banner-error {
+  background-color: var(--danger-soft);
+  border-color: rgba(185, 28, 28, 0.22);
+  color: var(--danger);
+}
+
+.banner-success {
+  background-color: var(--positive-soft);
+  border-color: rgba(21, 128, 61, 0.2);
+  color: var(--positive);
+}
+
+.banner-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.banner-btn {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  border-radius: var(--radius-tag);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 1100px) {
   .stats-grid {

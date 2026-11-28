@@ -93,7 +93,7 @@ function Sidebar({ activeSection, onSelectSection, isOpen, onClose }) {
         </nav>
 
         <div className="sidebar-footer">
-          <span className="workspace-caption">Local workspace</span>
+          <span className="workspace-caption">Flask + SQLite</span>
         </div>
       </aside>
     </>
