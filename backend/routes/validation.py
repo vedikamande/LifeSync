@@ -1,10 +1,16 @@
 """
-Shared request parsing and validation helpers used across Flask route files.
-Keeping validation in one place avoids repeating code across routes.
+Shared request parsing, database access, and validation helpers used across Flask route files.
+Keeping validation and DB opening in one place avoids repeating code across routes.
 """
 
 from datetime import date, datetime
-from flask import jsonify, request
+from flask import current_app, jsonify, request
+from database import get_db_connection
+
+
+def open_db():
+    """Opens a SQLite connection using the app's configured DATABASE_PATH."""
+    return get_db_connection(current_app.config.get("DATABASE_PATH"))
 
 
 def parse_json_body():
@@ -19,19 +25,6 @@ def parse_json_body():
             400,
         )
     return data, None
-
-
-def get_next_id(items):
-    """Generates the next integer ID based on existing items in a list."""
-    return max((item["id"] for item in items), default=0) + 1
-
-
-def find_item_by_id(items, item_id):
-    """Finds and returns the first dictionary whose 'id' matches item_id, or None."""
-    for item in items:
-        if item["id"] == item_id:
-            return item
-    return None
 
 
 def is_valid_date_string(value):

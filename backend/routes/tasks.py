@@ -1,15 +1,14 @@
 """
-Task Manager REST API routes (/api/tasks).
-Uses Flask Blueprint so task routes stay neatly separated from other modules.
+Task Manager REST API routes (/api/tasks) backed by SQLite.
+All queries use parameterized SQL (?) to prevent SQL injection.
 """
 
 from flask import Blueprint, jsonify
-from data.store import tasks_store
+from database import get_utc_timestamp
 from routes.validation import (
     error_response,
-    find_item_by_id,
-    get_next_id,
     is_valid_date_string,
+    open_db,
     parse_json_body,
 )
 
@@ -17,17 +16,54 @@ tasks_bp = Blueprint("tasks", __name__, url_prefix="/api/tasks")
 
 VALID_PRIORITIES = {"High", "Medium", "Low"}
 VALID_CATEGORIES = {"Study", "Personal", "Work"}
+VALID_STATUSES = {"Pending", "Completed"}
+
+
+def row_to_task(row):
+    """Converts a SQLite task row into the JSON shape expected by the API."""
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "description": row["description"],
+        "status": row["status"],
+        "completed": row["status"] == "Completed",
+        "priority": row["priority"],
+        "dueDate": row["due_date"],
+        "category": row["category"],
+        "createdAt": row["created_at"],
+    }
+
+
+def resolve_task_status(data, current_status="Pending"):
+    """Resolves task status from either 'status' or 'completed' in JSON payload."""
+    if "status" in data:
+        if data["status"] not in VALID_STATUSES:
+            return None, "Status must be either 'Pending' or 'Completed'."
+        return data["status"], None
+
+    if "completed" in data:
+        if not isinstance(data["completed"], bool):
+            return None, "completed must be a boolean (true/false)."
+        return ("Completed" if data["completed"] else "Pending"), None
+
+    return current_status, None
 
 
 @tasks_bp.route("", methods=["GET"])
 def get_tasks():
-    """Return all tasks currently stored in memory."""
-    return jsonify({"tasks": tasks_store, "count": len(tasks_store)}), 200
+    """Fetch all tasks from the SQLite tasks table."""
+    conn = open_db()
+    try:
+        rows = conn.execute("SELECT * FROM tasks ORDER BY id DESC").fetchall()
+        tasks = [row_to_task(row) for row in rows]
+        return jsonify({"tasks": tasks, "count": len(tasks)}), 200
+    finally:
+        conn.close()
 
 
 @tasks_bp.route("", methods=["POST"])
 def create_task():
-    """Create a new task from JSON request body."""
+    """Insert a new task into SQLite and return the created record."""
     data, err = parse_json_body()
     if err:
         return err
@@ -38,9 +74,7 @@ def create_task():
 
     priority = data.get("priority", "Medium")
     if priority not in VALID_PRIORITIES:
-        return error_response(
-            "Priority must be one of: High, Medium, Low.", 400
-        )
+        return error_response("Priority must be one of: High, Medium, Low.", 400)
 
     category = data.get("category", "Personal")
     if category not in VALID_CATEGORIES:
@@ -48,89 +82,139 @@ def create_task():
             "Category must be one of: Study, Personal, Work.", 400
         )
 
-    due_date = data.get("dueDate", "")
+    due_date = data.get("dueDate", data.get("due_date", ""))
     if due_date and not is_valid_date_string(due_date):
         return error_response("dueDate must be a valid YYYY-MM-DD date.", 400)
 
-    completed = data.get("completed", False)
-    if not isinstance(completed, bool):
-        return error_response("completed must be a boolean (true/false).", 400)
+    status, status_err = resolve_task_status(data, "Pending")
+    if status_err:
+        return error_response(status_err, 400)
 
-    new_task = {
-        "id": get_next_id(tasks_store),
-        "title": title,
-        "description": str(data.get("description", "")).strip(),
-        "priority": priority,
-        "dueDate": due_date,
-        "category": category,
-        "completed": completed,
-    }
-    tasks_store.append(new_task)
+    description = str(data.get("description", "")).strip()
+    created_at = get_utc_timestamp()
 
-    return jsonify({"message": "Task created successfully.", "task": new_task}), 201
+    conn = open_db()
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO tasks (title, description, status, priority, due_date, category, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (title, description, status, priority, due_date, category, created_at),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM tasks WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return (
+            jsonify(
+                {
+                    "message": "Task created successfully.",
+                    "task": row_to_task(row),
+                }
+            ),
+            201,
+        )
+    finally:
+        conn.close()
 
 
 @tasks_bp.route("/<int:task_id>", methods=["PUT"])
 def update_task(task_id):
-    """Update an existing task by its ID."""
-    task = find_item_by_id(tasks_store, task_id)
-    if not task:
-        return error_response(f"Task with id {task_id} was not found.", 404)
-
+    """Update an existing task in SQLite by ID."""
     data, err = parse_json_body()
     if err:
         return err
 
-    if "title" in data:
-        title = str(data["title"]).strip()
-        if not title:
-            return error_response("Task 'title' cannot be empty.", 400)
-        task["title"] = title
+    conn = open_db()
+    try:
+        existing = conn.execute(
+            "SELECT * FROM tasks WHERE id = ?", (task_id,)
+        ).fetchone()
+        if not existing:
+            return error_response(f"Task with id {task_id} was not found.", 404)
 
-    if "description" in data:
-        task["description"] = str(data["description"]).strip()
+        title = existing["title"]
+        if "title" in data:
+            title = str(data["title"]).strip()
+            if not title:
+                return error_response("Task 'title' cannot be empty.", 400)
 
-    if "priority" in data:
-        if data["priority"] not in VALID_PRIORITIES:
-            return error_response(
-                "Priority must be one of: High, Medium, Low.", 400
-            )
-        task["priority"] = data["priority"]
+        description = (
+            str(data["description"]).strip()
+            if "description" in data
+            else existing["description"]
+        )
 
-    if "category" in data:
-        if data["category"] not in VALID_CATEGORIES:
-            return error_response(
-                "Category must be one of: Study, Personal, Work.", 400
-            )
-        task["category"] = data["category"]
+        priority = existing["priority"]
+        if "priority" in data:
+            if data["priority"] not in VALID_PRIORITIES:
+                return error_response(
+                    "Priority must be one of: High, Medium, Low.", 400
+                )
+            priority = data["priority"]
 
-    if "dueDate" in data:
-        due_date = data["dueDate"]
-        if due_date and not is_valid_date_string(due_date):
-            return error_response(
-                "dueDate must be a valid YYYY-MM-DD date.", 400
-            )
-        task["dueDate"] = due_date
+        category = existing["category"]
+        if "category" in data:
+            if data["category"] not in VALID_CATEGORIES:
+                return error_response(
+                    "Category must be one of: Study, Personal, Work.", 400
+                )
+            category = data["category"]
 
-    if "completed" in data:
-        if not isinstance(data["completed"], bool):
-            return error_response(
-                "completed must be a boolean (true/false).", 400
-            )
-        task["completed"] = data["completed"]
+        due_date = existing["due_date"]
+        if "dueDate" in data or "due_date" in data:
+            due_date = data.get("dueDate", data.get("due_date", ""))
+            if due_date and not is_valid_date_string(due_date):
+                return error_response(
+                    "dueDate must be a valid YYYY-MM-DD date.", 400
+                )
 
-    return jsonify({"message": "Task updated successfully.", "task": task}), 200
+        status, status_err = resolve_task_status(data, existing["status"])
+        if status_err:
+            return error_response(status_err, 400)
+
+        conn.execute(
+            """
+            UPDATE tasks
+            SET title = ?, description = ?, status = ?, priority = ?, due_date = ?, category = ?
+            WHERE id = ?
+            """,
+            (title, description, status, priority, due_date, category, task_id),
+        )
+        conn.commit()
+
+        updated = conn.execute(
+            "SELECT * FROM tasks WHERE id = ?", (task_id,)
+        ).fetchone()
+        return (
+            jsonify(
+                {
+                    "message": "Task updated successfully.",
+                    "task": row_to_task(updated),
+                }
+            ),
+            200,
+        )
+    finally:
+        conn.close()
 
 
 @tasks_bp.route("/<int:task_id>", methods=["DELETE"])
 def delete_task(task_id):
-    """Delete a task by its ID."""
-    task = find_item_by_id(tasks_store, task_id)
-    if not task:
-        return error_response(f"Task with id {task_id} was not found.", 404)
+    """Delete a task from SQLite by ID."""
+    conn = open_db()
+    try:
+        cursor = conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return error_response(f"Task with id {task_id} was not found.", 404)
 
-    tasks_store.remove(task)
-    return (
-        jsonify({"message": "Task deleted successfully.", "deletedId": task_id}),
-        200,
-    )
+        return (
+            jsonify(
+                {"message": "Task deleted successfully.", "deletedId": task_id}
+            ),
+            200,
+        )
+    finally:
+        conn.close()

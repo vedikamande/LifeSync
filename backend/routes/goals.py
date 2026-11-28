@@ -1,16 +1,15 @@
 """
-Goal Management REST API routes (/api/goals).
-Supports creating, listing, updating progress/status, and deleting goals.
+Goal Management REST API routes (/api/goals) backed by SQLite.
+All queries use parameterized SQL (?) to prevent SQL injection.
 """
 
 from datetime import date
 from flask import Blueprint, jsonify
-from data.store import goals_store
+from database import get_utc_timestamp
 from routes.validation import (
     error_response,
-    find_item_by_id,
-    get_next_id,
     is_valid_date_string,
+    open_db,
     parse_json_body,
 )
 
@@ -38,15 +37,38 @@ def compute_goal_status(progress, target_date=""):
     return "In Progress"
 
 
+def row_to_goal(row):
+    """Converts a SQLite goal row into the JSON shape expected by the API."""
+    progress = row["progress"]
+    target_date = row["target_date"]
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "description": row["description"],
+        "category": row["category"],
+        "startDate": row["start_date"],
+        "targetDate": target_date,
+        "progress": progress,
+        "status": compute_goal_status(progress, target_date),
+        "createdAt": row["created_at"],
+    }
+
+
 @goals_bp.route("", methods=["GET"])
 def get_goals():
-    """Return all goals currently stored in memory."""
-    return jsonify({"goals": goals_store, "count": len(goals_store)}), 200
+    """Fetch all goals from the SQLite goals table."""
+    conn = open_db()
+    try:
+        rows = conn.execute("SELECT * FROM goals ORDER BY id DESC").fetchall()
+        goals = [row_to_goal(row) for row in rows]
+        return jsonify({"goals": goals, "count": len(goals)}), 200
+    finally:
+        conn.close()
 
 
 @goals_bp.route("", methods=["POST"])
 def create_goal():
-    """Create a new goal (defaulting progress to 0%)."""
+    """Insert a new goal into SQLite (defaulting progress to 0%)."""
     data, err = parse_json_body()
     if err:
         return err
@@ -62,8 +84,8 @@ def create_goal():
             400,
         )
 
-    start_date = data.get("startDate", "")
-    target_date = data.get("targetDate", "")
+    start_date = data.get("startDate", data.get("start_date", ""))
+    target_date = data.get("targetDate", data.get("target_date", ""))
     if start_date and not is_valid_date_string(start_date):
         return error_response("startDate must be a valid YYYY-MM-DD date.", 400)
     if target_date and not is_valid_date_string(target_date):
@@ -83,88 +105,164 @@ def create_goal():
             "progress must be an integer between 0 and 100.", 400
         )
 
-    new_goal = {
-        "id": get_next_id(goals_store),
-        "title": title,
-        "description": str(data.get("description", "")).strip(),
-        "category": category,
-        "startDate": start_date,
-        "targetDate": target_date,
-        "progress": progress,
-        "status": compute_goal_status(progress, target_date),
-    }
-    goals_store.append(new_goal)
+    status = compute_goal_status(progress, target_date)
+    description = str(data.get("description", "")).strip()
+    created_at = get_utc_timestamp()
 
-    return jsonify({"message": "Goal created successfully.", "goal": new_goal}), 201
+    conn = open_db()
+    try:
+        cursor = conn.execute(
+            """
+            INSERT INTO goals (title, description, category, start_date, target_date, progress, status, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                title,
+                description,
+                category,
+                start_date,
+                target_date,
+                progress,
+                status,
+                created_at,
+            ),
+        )
+        conn.commit()
+        row = conn.execute(
+            "SELECT * FROM goals WHERE id = ?", (cursor.lastrowid,)
+        ).fetchone()
+        return (
+            jsonify(
+                {
+                    "message": "Goal created successfully.",
+                    "goal": row_to_goal(row),
+                }
+            ),
+            201,
+        )
+    finally:
+        conn.close()
 
 
 @goals_bp.route("/<int:goal_id>", methods=["PUT"])
 def update_goal(goal_id):
-    """Update an existing goal and recalculate its status automatically."""
-    goal = find_item_by_id(goals_store, goal_id)
-    if not goal:
-        return error_response(f"Goal with id {goal_id} was not found.", 404)
-
+    """Update an existing goal in SQLite and recalculate its status."""
     data, err = parse_json_body()
     if err:
         return err
 
-    if "title" in data:
-        title = str(data["title"]).strip()
-        if not title:
-            return error_response("Goal 'title' cannot be empty.", 400)
-        goal["title"] = title
+    conn = open_db()
+    try:
+        existing = conn.execute(
+            "SELECT * FROM goals WHERE id = ?", (goal_id,)
+        ).fetchone()
+        if not existing:
+            return error_response(f"Goal with id {goal_id} was not found.", 404)
 
-    if "description" in data:
-        goal["description"] = str(data["description"]).strip()
+        title = existing["title"]
+        if "title" in data:
+            title = str(data["title"]).strip()
+            if not title:
+                return error_response("Goal 'title' cannot be empty.", 400)
 
-    if "category" in data:
-        if data["category"] not in VALID_CATEGORIES:
-            return error_response(
-                "Category must be one of: Personal, Education, Career, Health, Fitness, Finance, Other.",
-                400,
-            )
-        goal["category"] = data["category"]
-
-    next_start = data.get("startDate", goal["startDate"])
-    next_target = data.get("targetDate", goal["targetDate"])
-    if next_start and not is_valid_date_string(next_start):
-        return error_response("startDate must be a valid YYYY-MM-DD date.", 400)
-    if next_target and not is_valid_date_string(next_target):
-        return error_response("targetDate must be a valid YYYY-MM-DD date.", 400)
-    if next_start and next_target and next_target < next_start:
-        return error_response(
-            "targetDate cannot be earlier than startDate.", 400
+        description = (
+            str(data["description"]).strip()
+            if "description" in data
+            else existing["description"]
         )
-    goal["startDate"] = next_start
-    goal["targetDate"] = next_target
 
-    if "progress" in data:
-        progress = data["progress"]
-        if (
-            not isinstance(progress, int)
-            or isinstance(progress, bool)
-            or not (0 <= progress <= 100)
-        ):
+        category = existing["category"]
+        if "category" in data:
+            if data["category"] not in VALID_CATEGORIES:
+                return error_response(
+                    "Category must be one of: Personal, Education, Career, Health, Fitness, Finance, Other.",
+                    400,
+                )
+            category = data["category"]
+
+        next_start = data.get(
+            "startDate", data.get("start_date", existing["start_date"])
+        )
+        next_target = data.get(
+            "targetDate", data.get("target_date", existing["target_date"])
+        )
+        if next_start and not is_valid_date_string(next_start):
             return error_response(
-                "progress must be an integer between 0 and 100.", 400
+                "startDate must be a valid YYYY-MM-DD date.", 400
             )
-        goal["progress"] = progress
+        if next_target and not is_valid_date_string(next_target):
+            return error_response(
+                "targetDate must be a valid YYYY-MM-DD date.", 400
+            )
+        if next_start and next_target and next_target < next_start:
+            return error_response(
+                "targetDate cannot be earlier than startDate.", 400
+            )
 
-    goal["status"] = compute_goal_status(goal["progress"], goal["targetDate"])
+        progress = existing["progress"]
+        if "progress" in data:
+            progress = data["progress"]
+            if (
+                not isinstance(progress, int)
+                or isinstance(progress, bool)
+                or not (0 <= progress <= 100)
+            ):
+                return error_response(
+                    "progress must be an integer between 0 and 100.", 400
+                )
 
-    return jsonify({"message": "Goal updated successfully.", "goal": goal}), 200
+        status = compute_goal_status(progress, next_target)
+
+        conn.execute(
+            """
+            UPDATE goals
+            SET title = ?, description = ?, category = ?, start_date = ?, target_date = ?, progress = ?, status = ?
+            WHERE id = ?
+            """,
+            (
+                title,
+                description,
+                category,
+                next_start,
+                next_target,
+                progress,
+                status,
+                goal_id,
+            ),
+        )
+        conn.commit()
+
+        updated = conn.execute(
+            "SELECT * FROM goals WHERE id = ?", (goal_id,)
+        ).fetchone()
+        return (
+            jsonify(
+                {
+                    "message": "Goal updated successfully.",
+                    "goal": row_to_goal(updated),
+                }
+            ),
+            200,
+        )
+    finally:
+        conn.close()
 
 
 @goals_bp.route("/<int:goal_id>", methods=["DELETE"])
 def delete_goal(goal_id):
-    """Delete a goal by its ID."""
-    goal = find_item_by_id(goals_store, goal_id)
-    if not goal:
-        return error_response(f"Goal with id {goal_id} was not found.", 404)
+    """Delete a goal from SQLite by ID."""
+    conn = open_db()
+    try:
+        cursor = conn.execute("DELETE FROM goals WHERE id = ?", (goal_id,))
+        conn.commit()
+        if cursor.rowcount == 0:
+            return error_response(f"Goal with id {goal_id} was not found.", 404)
 
-    goals_store.remove(goal)
-    return (
-        jsonify({"message": "Goal deleted successfully.", "deletedId": goal_id}),
-        200,
-    )
+        return (
+            jsonify(
+                {"message": "Goal deleted successfully.", "deletedId": goal_id}
+            ),
+            200,
+        )
+    finally:
+        conn.close()

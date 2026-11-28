@@ -1,22 +1,29 @@
 """
-Main entry point for the LifeSync Python Flask REST API.
+Main entry point for the LifeSync Python Flask REST API backed by SQLite.
 Run this file inside backend/venv to start the server on http://localhost:5000.
 """
 
 from flask import Flask, jsonify
 from flask_cors import CORS
 
+from database import DEFAULT_DB_PATH, get_db_connection, init_db
 from routes.events import events_bp
 from routes.goals import goals_bp
 from routes.habits import habits_bp
 from routes.tasks import tasks_bp
 
 
-def create_app():
-    """Creates and configures the Flask application."""
+def create_app(db_path=None):
+    """Creates, configures, and initializes the Flask + SQLite application."""
     app = Flask(__name__)
 
-    # Allow cross-origin requests from the React + Vite frontend (localhost:5173)
+    target_db = str(db_path) if db_path else str(DEFAULT_DB_PATH)
+    app.config["DATABASE_PATH"] = target_db
+
+    # Create all SQLite tables automatically on startup (preserves existing data)
+    init_db(target_db)
+
+    # Allow cross-origin requests from the React + Vite frontend
     CORS(app)
 
     # Register modular Blueprint route files
@@ -27,13 +34,19 @@ def create_app():
 
     @app.route("/api/health", methods=["GET"])
     def health_check():
-        """Health-check endpoint to confirm the Flask server is running."""
+        """Health-check endpoint confirming both Flask and SQLite are working."""
+        conn = get_db_connection(app.config["DATABASE_PATH"])
+        try:
+            conn.execute("SELECT 1").fetchone()
+        finally:
+            conn.close()
+
         return (
             jsonify(
                 {
                     "status": "ok",
                     "message": "LifeSync Flask API is running",
-                    "storage": "in-memory",
+                    "storage": "sqlite",
                 }
             ),
             200,
