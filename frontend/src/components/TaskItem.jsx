@@ -4,13 +4,22 @@ import { formatDueDate } from '../utils/taskUtils.js'
 /**
  * Renders a single task row with completion checkbox, metadata tags, and edit/delete actions.
  */
-function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
+function TaskItem({
+  task,
+  isBusy = false,
+  onToggle,
+  onEdit,
+  onRequestDelete,
+}) {
+  const priorityLabel = task.priority || 'Medium'
+
   return (
     <li className={`task-card ${task.completed ? 'completed' : ''}`}>
       <button
         type="button"
         className={`check-btn ${task.completed ? 'checked' : ''}`}
         onClick={() => onToggle(task.id)}
+        disabled={isBusy}
         aria-label={
           task.completed
             ? `Mark "${task.title}" as pending`
@@ -31,12 +40,12 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
 
         <div className="task-meta-row">
           <span
-            className={`priority-badge priority-${task.priority.toLowerCase()}`}
+            className={`priority-badge priority-${priorityLabel.toLowerCase()}`}
           >
-            {task.priority}
+            {priorityLabel}
           </span>
 
-          <span className="category-badge">{task.category}</span>
+          <span className="category-badge">{task.category || 'Personal'}</span>
 
           <span
             className={`status-pill ${task.completed ? 'status-done' : 'status-pending'}`}
@@ -56,6 +65,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
           type="button"
           className="action-btn"
           onClick={() => onEdit(task)}
+          disabled={isBusy}
           aria-label={`Edit "${task.title}"`}
           title="Edit task"
         >
@@ -66,6 +76,7 @@ function TaskItem({ task, onToggle, onEdit, onRequestDelete }) {
           type="button"
           className="action-btn action-btn-danger"
           onClick={() => onRequestDelete(task)}
+          disabled={isBusy}
           aria-label={`Delete "${task.title}"`}
           title="Delete task"
         >

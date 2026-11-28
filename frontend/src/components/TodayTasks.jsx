@@ -9,10 +9,18 @@ const STATUS_FILTERS = ['All', 'Pending', 'Completed']
 const PRIORITY_FILTERS = ['All', 'High', 'Medium', 'Low']
 
 /**
- * Full Task Manager card supporting Add/Edit modal, delete confirmation, search, and filters.
+ * Full Task Manager card connected to Flask + SQLite via props from HomePage.
+ * Supports Add/Edit modal, delete confirmation, search, filters, loading states, and duplicate-submit protection.
  */
 function TodayTasks({
   tasks,
+  isLoading = false,
+  error = '',
+  successMessage = '',
+  pendingTaskIds = [],
+  onRetry,
+  onDismissError,
+  onDismissSuccess,
   onAddTask,
   onEditTask,
   onToggleTask,
@@ -24,7 +32,12 @@ function TodayTasks({
 
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
+  const [isSubmittingTask, setIsSubmittingTask] = useState(false)
+  const [modalError, setModalError] = useState('')
+
   const [taskPendingDelete, setTaskPendingDelete] = useState(null)
+  const [isDeletingTask, setIsDeletingTask] = useState(false)
+  const [deleteError, setDeleteError] = useState('')
 
   const filteredTasks = filterTasks(tasks, {
     searchQuery,
@@ -39,32 +52,66 @@ function TodayTasks({
 
   function openAddModal() {
     setEditingTask(null)
+    setModalError('')
     setIsTaskModalOpen(true)
   }
 
   function openEditModal(task) {
     setEditingTask(task)
+    setModalError('')
     setIsTaskModalOpen(true)
   }
 
   function closeTaskModal() {
+    if (isSubmittingTask) return
     setIsTaskModalOpen(false)
     setEditingTask(null)
+    setModalError('')
   }
 
-  function handleSaveTask(formData) {
-    if (editingTask) {
-      onEditTask(editingTask.id, formData)
-    } else {
-      onAddTask(formData)
+  async function handleSaveTask(formData) {
+    if (isSubmittingTask) return
+
+    setIsSubmittingTask(true)
+    setModalError('')
+    try {
+      const result = editingTask
+        ? await onEditTask(editingTask.id, formData)
+        : await onAddTask(formData)
+
+      if (result && result.ok === false) {
+        setModalError(result.error || 'Could not save task. Please try again.')
+        return
+      }
+
+      setIsTaskModalOpen(false)
+      setEditingTask(null)
+    } finally {
+      setIsSubmittingTask(false)
     }
-    closeTaskModal()
   }
 
-  function handleConfirmDelete() {
-    if (!taskPendingDelete) return
-    onDeleteTask(taskPendingDelete.id)
+  function closeDeleteModal() {
+    if (isDeletingTask) return
     setTaskPendingDelete(null)
+    setDeleteError('')
+  }
+
+  async function handleConfirmDelete() {
+    if (!taskPendingDelete || isDeletingTask) return
+
+    setIsDeletingTask(true)
+    setDeleteError('')
+    try {
+      const result = await onDeleteTask(taskPendingDelete.id)
+      if (result && result.ok === false) {
+        setDeleteError(result.error || 'Could not delete task. Please try again.')
+        return
+      }
+      setTaskPendingDelete(null)
+    } finally {
+      setIsDeletingTask(false)
+    }
   }
 
   function handleClearFilters() {
@@ -78,14 +125,67 @@ function TodayTasks({
       <div className="card-header">
         <div>
           <h2 className="card-title">Today&apos;s tasks</h2>
-          <p className="card-subtitle">Saved automatically to this browser</p>
+          <p className="card-subtitle">Synced with Flask &amp; SQLite</p>
         </div>
 
-        <button type="button" className="btn-primary" onClick={openAddModal}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={openAddModal}
+          disabled={isLoading || isSubmittingTask}
+        >
           <Plus size={16} strokeWidth={1.5} />
           <span>Add task</span>
         </button>
       </div>
+
+      {isLoading && (
+        <div className="feedback-banner banner-loading task-banner" role="status">
+          <span>Loading tasks from Flask database...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="feedback-banner banner-error task-banner" role="alert">
+          <span>{error}</span>
+          <div className="banner-actions">
+            {onRetry && (
+              <button
+                type="button"
+                className="banner-btn"
+                onClick={onRetry}
+                disabled={isLoading}
+              >
+                Retry
+              </button>
+            )}
+            {onDismissError && (
+              <button
+                type="button"
+                className="banner-btn"
+                onClick={onDismissError}
+              >
+                Dismiss
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {successMessage && (
+        <div className="feedback-banner banner-success task-banner" role="status">
+          <span>{successMessage}</span>
+          {onDismissSuccess && (
+            <button
+              type="button"
+              className="banner-btn"
+              onClick={onDismissSuccess}
+            >
+              Dismiss
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="task-toolbar">
         <div className="search-box">
@@ -134,9 +234,17 @@ function TodayTasks({
         </div>
       </div>
 
-      {tasks.length === 0 ? (
+      {isLoading && tasks.length === 0 ? (
         <div className="empty-state">
-          <p>No tasks yet. Use Add task to create your first item.</p>
+          <p>Fetching your tasks...</p>
+        </div>
+      ) : tasks.length === 0 ? (
+        <div className="empty-state">
+          <p>
+            {error
+              ? 'Unable to load tasks right now. Check the Flask server and click Retry.'
+              : 'No tasks yet. Use Add task to create your first item.'}
+          </p>
         </div>
       ) : filteredTasks.length === 0 ? (
         <div className="empty-state">
@@ -157,9 +265,13 @@ function TodayTasks({
             <TaskItem
               key={task.id}
               task={task}
+              isBusy={pendingTaskIds.includes(task.id)}
               onToggle={onToggleTask}
               onEdit={openEditModal}
-              onRequestDelete={setTaskPendingDelete}
+              onRequestDelete={(item) => {
+                setDeleteError('')
+                setTaskPendingDelete(item)
+              }}
             />
           ))}
         </ul>
@@ -169,6 +281,8 @@ function TodayTasks({
         <TaskModal
           key={editingTask ? editingTask.id : 'new-task'}
           initialTask={editingTask}
+          isSubmitting={isSubmittingTask}
+          submitError={modalError}
           onSave={handleSaveTask}
           onClose={closeTaskModal}
         />
@@ -178,9 +292,11 @@ function TodayTasks({
         <ConfirmModal
           title="Delete task"
           message={`Delete "${taskPendingDelete.title}"? This cannot be undone.`}
-          confirmLabel="Delete task"
+          confirmLabel={isDeletingTask ? 'Deleting...' : 'Delete task'}
+          isConfirming={isDeletingTask}
+          error={deleteError}
           onConfirm={handleConfirmDelete}
-          onCancel={() => setTaskPendingDelete(null)}
+          onCancel={closeDeleteModal}
         />
       )}
     </section>

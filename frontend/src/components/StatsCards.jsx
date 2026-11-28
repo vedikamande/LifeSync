@@ -1,47 +1,27 @@
 /**
- * Displays dynamic summary statistics fetched from the Flask + SQLite backend.
+ * Displays dynamic summary figures computed from live tasks (SQLite) and goals state.
  */
-function StatsCards({ summary }) {
+function StatsCards({ totalTasks, completedTasks, pendingTasks, activeGoals }) {
   const cards = [
     {
       label: 'Total tasks',
-      value: summary.totalTasks,
-      hint: 'In database',
+      value: totalTasks,
+      hint: 'Saved in SQLite',
     },
     {
       label: 'Completed tasks',
-      value: summary.completedTasks,
+      value: completedTasks,
       hint: 'Checked off',
     },
     {
       label: 'Pending tasks',
-      value: summary.pendingTasks,
+      value: pendingTasks,
       hint: 'Remaining',
     },
     {
-      label: 'Upcoming events',
-      value: summary.upcomingEvents,
-      hint: 'Scheduled',
-    },
-    {
-      label: 'Total habits',
-      value: summary.totalHabits,
-      hint: 'Tracked routines',
-    },
-    {
-      label: 'Habits today',
-      value: summary.completedHabitsToday,
-      hint: 'Completed today',
-    },
-    {
-      label: 'Total goals',
-      value: summary.totalGoals,
-      hint: 'Active & done',
-    },
-    {
-      label: 'Completed goals',
-      value: summary.completedGoals,
-      hint: '100% reached',
+      label: 'Active goals',
+      value: activeGoals,
+      hint: 'In progress',
     },
   ]
 

@@ -2,19 +2,27 @@ import { useEffect } from 'react'
 import { AlertTriangle, X } from 'lucide-react'
 
 /**
- * Reusable confirmation modal used before deleting a task.
+ * Reusable confirmation modal used before deleting items.
  */
-function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCancel }) {
+function ConfirmModal({
+  title,
+  message,
+  confirmLabel = 'Delete',
+  isConfirming = false,
+  error = '',
+  onConfirm,
+  onCancel,
+}) {
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !isConfirming) {
         onCancel()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onCancel])
+  }, [onCancel, isConfirming])
 
   return (
     <div
@@ -22,7 +30,9 @@ function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCa
       role="dialog"
       aria-modal="true"
       aria-labelledby="confirm-modal-title"
-      onClick={onCancel}
+      onClick={() => {
+        if (!isConfirming) onCancel()
+      }}
     >
       <div
         className="modal-card confirm-modal-card"
@@ -42,6 +52,7 @@ function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCa
             type="button"
             className="icon-btn"
             onClick={onCancel}
+            disabled={isConfirming}
             aria-label="Close confirmation dialog"
           >
             <X size={16} strokeWidth={1.5} />
@@ -50,11 +61,23 @@ function ConfirmModal({ title, message, confirmLabel = 'Delete', onConfirm, onCa
 
         <p className="confirm-message">{message}</p>
 
+        {error && <p className="form-error">{error}</p>}
+
         <div className="modal-actions">
-          <button type="button" className="btn-secondary" onClick={onCancel}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={onCancel}
+            disabled={isConfirming}
+          >
             Cancel
           </button>
-          <button type="button" className="btn-danger" onClick={onConfirm}>
+          <button
+            type="button"
+            className="btn-danger"
+            onClick={onConfirm}
+            disabled={isConfirming}
+          >
             {confirmLabel}
           </button>
         </div>

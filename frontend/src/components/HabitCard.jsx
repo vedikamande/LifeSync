@@ -1,4 +1,4 @@
-import { Check, Flame, History, Pencil, Trash2 } from 'lucide-react'
+import { Check, Flame, Pencil, Trash2 } from 'lucide-react'
 import { isHabitCompletedOnDate } from '../utils/habitUtils.js'
 
 /**
@@ -9,7 +9,6 @@ function HabitCard({
   selectedDate,
   weekDates,
   onCompleteForDate,
-  onViewHistory,
   onEdit,
   onRequestDelete,
 }) {
@@ -70,16 +69,6 @@ function HabitCard({
         </div>
 
         <div className="task-actions">
-          <button
-            type="button"
-            className="action-btn"
-            onClick={() => onViewHistory(habit)}
-            aria-label={`View history for ${habit.name}`}
-            title="View completion history"
-          >
-            <History size={16} strokeWidth={1.5} />
-          </button>
-
           <button
             type="button"
             className="action-btn"

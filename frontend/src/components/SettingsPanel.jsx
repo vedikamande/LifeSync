@@ -1,7 +1,7 @@
 import { Database, Layers, Server } from 'lucide-react'
 
 /**
- * Informational Settings panel describing the live React, Flask, and SQLite stack.
+ * Informational Settings panel explaining current frontend state and backend task integration.
  */
 function SettingsPanel() {
   return (
@@ -10,7 +10,7 @@ function SettingsPanel() {
         <div>
           <h2 className="card-title">Workspace settings</h2>
           <p className="card-subtitle">
-            Connected React, Flask, and SQLite architecture
+            Frontend environment and Task Manager backend connection
           </p>
         </div>
       </div>
@@ -23,8 +23,9 @@ function SettingsPanel() {
           <div>
             <h3 className="settings-heading">Frontend application</h3>
             <p className="settings-text">
-              Built with React.js, Vite, Lucide icons, and Recharts, communicating
-              with Flask through <code>src/api/api.js</code>.
+              Built with React.js, Vite, Lucide icons, and Recharts. Tasks sync
+              with Flask through <code>src/api/api.js</code>, while Habits, Goals,
+              and Calendar still use browser <code>localStorage</code>.
             </p>
           </div>
         </div>
@@ -34,9 +35,9 @@ function SettingsPanel() {
             <Server size={16} strokeWidth={1.5} />
           </span>
           <div>
-            <h3 className="settings-heading">Backend API (connected)</h3>
+            <h3 className="settings-heading">Task Manager API (connected)</h3>
             <p className="settings-text">
-              Python Flask REST API running at{' '}
+              Python Flask REST endpoints (<code>/api/tasks</code>) run at{' '}
               <code>http://127.0.0.1:5000</code> with Flask-CORS enabled.
             </p>
           </div>
@@ -47,11 +48,10 @@ function SettingsPanel() {
             <Database size={16} strokeWidth={1.5} />
           </span>
           <div>
-            <h3 className="settings-heading">Database storage (connected)</h3>
+            <h3 className="settings-heading">SQLite database (tasks)</h3>
             <p className="settings-text">
               SQLite persistence in <code>backend/data/lifesync.db</code> stores
-              tasks, habits, habit logs, goals, and calendar events across
-              restarts.
+              tasks permanently across browser refreshes and server restarts.
             </p>
           </div>
         </div>

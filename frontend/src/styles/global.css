@@ -569,6 +569,15 @@ textarea:focus-visible {
   opacity: 0.92;
 }
 
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.check-btn:disabled,
+.action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .btn-link {
   margin-top: 8px;
   border: none;
@@ -1154,6 +1163,10 @@ textarea:focus-visible {
   border: 1px solid var(--border-hairline);
   font-size: 13px;
   line-height: 18px;
+}
+
+.task-banner {
+  margin-bottom: 12px;
 }
 
 .banner-loading {

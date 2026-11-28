@@ -7,7 +7,6 @@ import {
 } from '../utils/habitUtils.js'
 import ConfirmModal from './ConfirmModal.jsx'
 import HabitCard from './HabitCard.jsx'
-import HabitHistoryModal from './HabitHistoryModal.jsx'
 import HabitModal from './HabitModal.jsx'
 import HabitStats from './HabitStats.jsx'
 
@@ -27,7 +26,6 @@ function HabitTracker({
 
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false)
   const [editingHabit, setEditingHabit] = useState(null)
-  const [historyHabit, setHistoryHabit] = useState(null)
   const [habitPendingDelete, setHabitPendingDelete] = useState(null)
 
   const weeklyProgress = getWeeklyHabitProgress(habits, todayKey)
@@ -179,7 +177,6 @@ function HabitTracker({
               selectedDate={selectedDate}
               weekDates={weeklyProgress.weekDates}
               onCompleteForDate={onCompleteHabitForDate}
-              onViewHistory={setHistoryHabit}
               onEdit={openEditModal}
               onRequestDelete={setHabitPendingDelete}
             />
@@ -193,13 +190,6 @@ function HabitTracker({
           initialHabit={editingHabit}
           onSave={handleSaveHabit}
           onClose={closeHabitModal}
-        />
-      )}
-
-      {historyHabit && (
-        <HabitHistoryModal
-          habit={historyHabit}
-          onClose={() => setHistoryHabit(null)}
         />
       )}
 

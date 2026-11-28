@@ -1,68 +1,83 @@
 # LifeSync – Personal Life Management Dashboard Documentation
 
 ## Overview
-**LifeSync** is a full-stack personal productivity dashboard designed to help users manage daily tasks, personal goals, habits, calendar scheduling, activities, and progress reports.
+**LifeSync** is a full-stack personal productivity dashboard built with **React.js + Vite** on the frontend and **Python Flask + SQLite** on the backend.
 
-This document reflects **Phase 9: React + Flask + SQLite Integration**, where the **React.js + Vite** frontend communicates directly with the **Python Flask** REST API backed by **SQLite** (`backend/data/lifesync.db`).
-
----
-
-## Recent Changes (Phase 9: React + Flask Integration)
-
-### 1. Frontend & Backend Changes
-- `frontend/src/api/api.js`: Centralized Fetch API client targeting `http://127.0.0.1:5000` with `ApiError`, `apiGet`, `apiPost`, `apiPut`, `apiDelete`, and resource helpers for Health, Dashboard Summary, Tasks, Habits (`/complete`, `/history`, `/status`), Goals, and Calendar Events.
-- `frontend/src/services/api.js`: Re-exports `API_BASE_URL` from `src/api/api.js`.
-- `frontend/src/utils/migrationUtils.js`: Performs safe one-time migration of legacy `localStorage` data (`lifesync_tasks`, `lifesync_habits`, `lifesync_goals`, `lifesync_events`) into SQLite when backend tables are empty, then removes those legacy `localStorage` keys.
-- `frontend/src/pages/HomePage.jsx`: Loads Tasks, Habits, Goals, Events, and Dashboard Summary from Flask on mount, runs async CRUD handlers against Flask APIs, refreshes `/api/dashboard/summary` after mutations, and displays loading, error (with Retry), and success feedback banners.
-- `frontend/src/components/StatsCards.jsx`: Displays all 8 live SQLite-backed summary metrics (`Total tasks`, `Completed tasks`, `Pending tasks`, `Upcoming events`, `Total habits`, `Habits today`, `Total goals`, `Completed goals`).
-- `frontend/src/components/HabitHistoryModal.jsx`, `HabitCard.jsx`, `HabitTracker.jsx`: Added live `GET /api/habits/<id>/history` modal inspection.
-- `frontend/src/components/Sidebar.jsx`, `SettingsPanel.jsx`, `global.css`, `habits.css`: Updated workspace labels and added feedback banner + history modal styles.
-- `backend/app.py`: Added `GET /api/dashboard/summary` querying live counts across `tasks`, `habits`, `habit_logs`, `goals`, and `events`.
+This documentation covers **Task Manager Integration (Flask + SQLite)**, where the **Task Manager** module communicates with Flask REST APIs backed by `backend/data/lifesync.db`, while **Habit Tracker**, **Goal Management**, and **Calendar** continue using browser `localStorage` without modification.
 
 ---
 
-## Architecture & Integration Flow Diagrams
+## Task Manager Integration Changes
 
-### Full-Stack Phase 9 Architecture
+### 1. Frontend Files Updated
+- `frontend/src/api/api.js`: Centralized Fetch API helper configured with `API_BASE_URL = 'http://127.0.0.1:5000'`, structured `ApiError` error handling, and task CRUD helpers (`fetchTasksApi`, `createTaskApi`, `updateTaskApi`, `deleteTaskApi`).
+- `frontend/src/pages/HomePage.jsx`:
+  - Fetches tasks on initial mount from `GET /api/tasks`.
+  - Connects `handleAddTask` (`POST /api/tasks`), `handleEditTask` (`PUT /api/tasks/<id>`), `handleToggleTask` (`PUT /api/tasks/<id>`), and `handleDeleteTask` (`DELETE /api/tasks/<id>`).
+  - Tracks loading, API error, success feedback, and `pendingTaskIds` to prevent duplicate requests.
+  - Calculates live dashboard statistics (`totalTasks`, `completedTasks`, `pendingTasks`) directly from SQLite-backed `tasks` state.
+  - Preserves existing `localStorage` data untouched (does not write new task records to `localStorage`, delete legacy keys, or auto-migrate without user choice).
+  - Keeps **Habit Tracker**, **Goal Management**, and **Calendar Events** on `localStorage` unchanged.
+- `frontend/src/components/TodayTasks.jsx`: Displays loading, API error (with **Retry**), and success banners; awaits async save/delete operations before closing modals; prevents duplicate form/delete submissions; updates subtitle to `Synced with Flask & SQLite`.
+- `frontend/src/components/TaskModal.jsx`: Accepts `isSubmitting` and `submitError` props to disable controls during save and preserve form inputs on API errors.
+- `frontend/src/components/TaskItem.jsx`: Accepts `isBusy` prop to disable checkbox, edit, and delete buttons while an API call for that task is in progress.
+- `frontend/src/components/ConfirmModal.jsx`: Accepts optional `isConfirming` and `error` props to prevent duplicate delete requests.
+- `frontend/src/components/StatsCards.jsx`: Displays `Total tasks`, `Completed tasks`, `Pending tasks`, and `Active goals` using live SQLite task counts.
+- `frontend/src/utils/taskUtils.js`: Preserves search, status (`All`, `Pending`, `Completed`), and priority (`All`, `High`, `Medium`, `Low`) filtering for database tasks.
+- `frontend/src/components/SettingsPanel.jsx` & `frontend/src/styles/global.css`: Updated settings info and disabled/banner styles.
+
+---
+
+## Architecture & Sequence Diagrams
+
+### Task Manager Full-Stack Architecture
 ```mermaid
 flowchart LR
-    React["React + Vite Frontend (:5173)"] -->|"src/api/api.js (Fetch JSON)"| Flask["Flask API (:5000) + CORS"]
-    Flask --> Summary["GET /api/dashboard/summary"]
-    Flask --> Routes["Blueprints: tasks, habits, goals, events"]
-    Routes --> DB["backend/database.py (sqlite3)"]
-    Summary --> DB
-    DB --> File["backend/data/lifesync.db"]
+    UI["TodayTasks.jsx / TaskModal.jsx / TaskItem.jsx"] -->|"Callbacks & State"| Home["HomePage.jsx"]
+    Home -->|"fetchTasksApi / createTaskApi / updateTaskApi / deleteTaskApi"| ApiClient["src/api/api.js (http://127.0.0.1:5000)"]
+    ApiClient -->|"REST JSON + CORS"| Flask["backend/app.py & backend/routes/tasks.py"]
+    Flask -->|"Parameterized SQL"| DB["backend/data/lifesync.db (tasks table)"]
+    Home -->|"Other Modules (Unchanged)"| Local["localStorage: Habits, Goals, Calendar, Activities"]
 ```
 
-### Initial Load & Legacy Migration Sequence
+### Task CRUD & Duplicate-Submit Protection Flow
 ```mermaid
 sequenceDiagram
-    participant UI as HomePage.jsx
+    participant User
+    participant Modal as TaskModal / TodayTasks
+    participant Home as HomePage.jsx
     participant API as src/api/api.js
     participant Flask as Flask + SQLite
-    participant LS as Legacy localStorage
 
-    UI->>API: Promise.all(fetchTasks, fetchHabits, fetchGoals, fetchEvents, fetchSummary)
-    API->>Flask: GET /api/*
-    Flask-->>UI: Current SQLite rows
-    UI->>LS: migrateLegacyLocalStorage(fetched)
-    alt SQLite table empty & legacy data exists
-        UI->>API: POST legacy records to Flask
-        API->>Flask: INSERT into SQLite
-        UI->>LS: Remove legacy localStorage keys
-        UI->>API: Re-fetch synced SQLite rows & summary
-    else Normal sync
-        UI->>LS: Clear legacy keys
+    User->>Modal: Submit Add / Edit / Toggle / Delete
+    Modal->>Modal: Lock button (isSubmitting / isBusy)
+    Modal->>Home: Await task handler
+    Home->>API: Fetch JSON (POST / PUT / DELETE /api/tasks)
+    API->>Flask: HTTP Request
+    alt 2xx Success
+        Flask-->>API: JSON task payload
+        API-->>Home: Updated task
+        Home->>Home: Update tasks state & dashboard stats
+        Modal->>Modal: Unlock & close modal
+    else Network or HTTP Error
+        Flask-->>API: Error JSON or connection failure
+        API-->>Home: Throw ApiError
+        Home-->>Modal: Return error message
+        Modal->>Modal: Keep modal open, show error, re-enable button
     end
 ```
 
 ---
 
-## REST API Contracts (`http://127.0.0.1:5000`)
+## Task Manager API Contracts (`http://127.0.0.1:5000`)
 
-- **Health**: `GET /api/health` → `{"status": "ok", "storage": "sqlite", ...}`
-- **Dashboard Summary**: `GET /api/dashboard/summary` → `{"totalTasks", "completedTasks", "pendingTasks", "totalHabits", "completedHabitsToday", "totalGoals", "completedGoals", "upcomingEvents"}`
-- **Tasks**: `GET /api/tasks`, `POST /api/tasks`, `PUT /api/tasks/<id>`, `DELETE /api/tasks/<id>`
-- **Habits**: `GET /api/habits`, `POST /api/habits`, `PUT /api/habits/<id>`, `DELETE /api/habits/<id>`, `POST /api/habits/<id>/complete`, `GET /api/habits/<id>/history`, `GET /api/habits/<id>/status`
-- **Goals**: `GET /api/goals`, `POST /api/goals`, `PUT /api/goals/<id>`, `DELETE /api/goals/<id>`
-- **Events**: `GET /api/events`, `POST /api/events`, `PUT /api/events/<id>`, `DELETE /api/events/<id>`
+- **`GET /api/tasks`** → `200 OK`
+  - Response: `{ "tasks": [ { "id", "title", "description", "status", "completed", "priority", "dueDate", "category", "createdAt" } ], "count": number }`
+- **`POST /api/tasks`** → `201 Created`
+  - Body: `{ "title", "description", "priority", "dueDate", "category" }`
+  - Response: `{ "message": "Task created successfully.", "task": { ... } }`
+- **`PUT /api/tasks/<id>`** → `200 OK`
+  - Body: Partial or full task fields (`title`, `description`, `priority`, `dueDate`, `category`, `completed` or `status`)
+  - Response: `{ "message": "Task updated successfully.", "task": { ... } }`
+- **`DELETE /api/tasks/<id>`** → `200 OK`
+  - Response: `{ "message": "Task deleted successfully.", "deletedId": number }`

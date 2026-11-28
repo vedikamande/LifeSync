@@ -6,8 +6,15 @@ const PRIORITIES = ['High', 'Medium', 'Low']
 
 /**
  * Modal dialog for creating a new task or editing an existing task.
+ * Disables submission while an API request is running to prevent duplicate writes.
  */
-function TaskModal({ initialTask, onSave, onClose }) {
+function TaskModal({
+  initialTask,
+  isSubmitting = false,
+  submitError = '',
+  onSave,
+  onClose,
+}) {
   const isEditing = Boolean(initialTask)
 
   const [title, setTitle] = useState(initialTask?.title ?? '')
@@ -19,17 +26,19 @@ function TaskModal({ initialTask, onSave, onClose }) {
 
   useEffect(() => {
     function handleKeyDown(event) {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && !isSubmitting) {
         onClose()
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
+  }, [onClose, isSubmitting])
 
   function handleSubmit(event) {
     event.preventDefault()
+    if (isSubmitting) return
+
     const trimmedTitle = title.trim()
 
     if (!trimmedTitle) {
@@ -52,7 +61,9 @@ function TaskModal({ initialTask, onSave, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="task-modal-title"
-      onClick={onClose}
+      onClick={() => {
+        if (!isSubmitting) onClose()
+      }}
     >
       <div className="modal-card" onClick={(event) => event.stopPropagation()}>
         <div className="modal-header">
@@ -63,7 +74,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
             <p className="modal-subtitle">
               {isEditing
                 ? 'Update the details for this task.'
-                : 'Fill in the details to add a task to your list.'}
+                : 'Fill in the details to save a task to the database.'}
             </p>
           </div>
 
@@ -71,6 +82,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
             type="button"
             className="icon-btn"
             onClick={onClose}
+            disabled={isSubmitting}
             aria-label="Close task form"
           >
             <X size={16} strokeWidth={1.5} />
@@ -88,6 +100,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
               className="form-control"
               placeholder="e.g., Complete React hooks assignment"
               value={title}
+              disabled={isSubmitting}
               onChange={(event) => {
                 setTitle(event.target.value)
                 if (error) setError('')
@@ -107,6 +120,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
               rows={3}
               placeholder="Add helpful notes or steps..."
               value={description}
+              disabled={isSubmitting}
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
@@ -120,6 +134,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
                 id="task-priority"
                 className="form-control"
                 value={priority}
+                disabled={isSubmitting}
                 onChange={(event) => setPriority(event.target.value)}
               >
                 {PRIORITIES.map((item) => (
@@ -138,6 +153,7 @@ function TaskModal({ initialTask, onSave, onClose }) {
                 id="task-category"
                 className="form-control"
                 value={category}
+                disabled={isSubmitting}
                 onChange={(event) => setCategory(event.target.value)}
               >
                 {CATEGORIES.map((item) => (
@@ -158,16 +174,32 @@ function TaskModal({ initialTask, onSave, onClose }) {
               type="date"
               className="form-control"
               value={dueDate}
+              disabled={isSubmitting}
               onChange={(event) => setDueDate(event.target.value)}
             />
           </div>
 
+          {submitError && <p className="form-error">{submitError}</p>}
+
           <div className="modal-actions">
-            <button type="button" className="btn-secondary" onClick={onClose}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
-              {isEditing ? 'Save Changes' : 'Save Task'}
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? 'Saving...'
+                : isEditing
+                  ? 'Save Changes'
+                  : 'Save Task'}
             </button>
           </div>
         </form>

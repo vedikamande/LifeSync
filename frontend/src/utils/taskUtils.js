@@ -37,12 +37,13 @@ export function filterTasks(tasks, { searchQuery = '', statusFilter = 'All', pri
   const normalizedQuery = searchQuery.trim().toLowerCase()
 
   return tasks.filter((task) => {
+    const title = String(task.title || '').toLowerCase()
     const matchesSearch =
-      !normalizedQuery || task.title.toLowerCase().includes(normalizedQuery)
+      !normalizedQuery || title.includes(normalizedQuery)
 
     const matchesStatus =
       statusFilter === 'All' ||
-      (statusFilter === 'Completed' && task.completed) ||
+      (statusFilter === 'Completed' && Boolean(task.completed)) ||
       (statusFilter === 'Pending' && !task.completed)
 
     const matchesPriority =
